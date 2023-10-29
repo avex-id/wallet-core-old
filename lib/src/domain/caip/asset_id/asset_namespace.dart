@@ -2,7 +2,7 @@ import 'asset_namespace/bip122_asset_namespace.dart';
 import 'asset_namespace/eip155_asset_namespace.dart';
 import 'asset_namespace/solana_asset_namespace.dart';
 import '../blockchain_id/blockchain_id.dart';
-import '..//blockchain_id/namespace.dart';
+import '../blockchain_id/namespace.dart';
 
 abstract class BlockchainAssetNamespace {
   @override
