@@ -1,24 +1,25 @@
-import 'package:wallet_core/src/domain/caip/blockchain_id/blockchain_id.dart';
+import 'account_address.dart';
+import '../blockchain_id/blockchain_id.dart';
 
-class AccountId {
+class BlockchainAccountId {
   final BlockchainId blockchainId;
-  final String accountAddress;
+  final BlockchainAccountAddress accountAddress;
 
-  AccountId(this.blockchainId, this.accountAddress);
+  BlockchainAccountId(this.blockchainId, this.accountAddress);
 
-  static AccountId fromString(String accountId) {
+  static BlockchainAccountId fromString(String accountId) {
     final parts = accountId.split(':');
     if (parts.length != 3) {
       throw Exception('Invalid account id');
     }
-    final chainId = BlockchainId.fromString('${parts[0]}:${parts[1]}');
-    final accountAddress = parts[2];
-    // TODO: validate account address
-    return AccountId(chainId, accountAddress);
+    final blockchainId = BlockchainId.fromString('${parts[0]}:${parts[1]}');
+    final accountAddress =
+        AccountAddressMixin.fromString(blockchainId, parts[2]);
+    return BlockchainAccountId(blockchainId, accountAddress);
   }
 
   @override
   String toString() {
-    return "${blockchainId.toString()}:$accountAddress";
+    return "${blockchainId.toString()}:${accountAddress.toString()}";
   }
 }

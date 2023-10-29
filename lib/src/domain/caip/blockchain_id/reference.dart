@@ -27,15 +27,11 @@ class SolanaBlockchainReference extends BlockchainReference {
 
   SolanaBlockchainReference(this.value);
 
-  factory SolanaBlockchainReference.fromReference(String reference) {
-    return SolanaBlockchainReference(
-        SolanaReferenceExtension.fromString(reference));
-  }
+  SolanaBlockchainReference.fromReference(String reference)
+      : value = SolanaReferenceExtension.fromString(reference);
 
   @override
-  String toString() {
-    return value.asString;
-  }
+  String toString() => value.asString;
 }
 
 class Bip122BlockchainReference extends BlockchainReference {
@@ -43,15 +39,11 @@ class Bip122BlockchainReference extends BlockchainReference {
 
   Bip122BlockchainReference(this.value);
 
-  factory Bip122BlockchainReference.fromReference(String reference) {
-    return Bip122BlockchainReference(
-        Bip122ReferenceExtension.fromString(reference));
-  }
+  Bip122BlockchainReference.fromReference(String reference)
+      : value = Bip122ReferenceExtension.fromString(reference);
 
   @override
-  String toString() {
-    return value.asString;
-  }
+  String toString() => value.asString;
 }
 
 class Eip155BlockchainReference extends BlockchainReference {
@@ -59,13 +51,9 @@ class Eip155BlockchainReference extends BlockchainReference {
 
   Eip155BlockchainReference(this.value);
 
-  factory Eip155BlockchainReference.fromReference(String reference) {
-    return Eip155BlockchainReference(
-        Eip155ReferenceExtension.fromString(reference));
-  }
+  Eip155BlockchainReference.fromReference(String reference)
+      : value = Eip155ReferenceExtension.fromString(reference);
 
   @override
-  String toString() {
-    return value.asString;
-  }
+  String toString() => value.asString;
 }
