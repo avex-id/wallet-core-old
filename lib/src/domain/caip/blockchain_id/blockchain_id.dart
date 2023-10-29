@@ -1,20 +1,11 @@
-import 'package:wallet_core/src/domain/caip/blockchain_id/namespace.dart';
-import 'package:wallet_core/src/domain/caip/blockchain_id/reference.dart';
+import 'namespace.dart';
+import 'reference.dart';
 
 class BlockchainId {
   final BlockchainNamespace namespace;
   final BlockchainReference reference;
 
   BlockchainId(this.namespace, this.reference);
-
-  BlockchainId.eip155(Eip155BlockchainReference reference)
-      : this(BlockchainNamespace.eip155, reference);
-
-  BlockchainId.solana(SolanaBlockchainReference reference)
-      : this(BlockchainNamespace.solana, reference);
-
-  BlockchainId.bip122(Bip122BlockchainReference reference)
-      : this(BlockchainNamespace.bip122, reference);
 
   static BlockchainId fromString(String blockchainId) {
     final parts = blockchainId.split(':');
@@ -28,6 +19,6 @@ class BlockchainId {
 
   @override
   String toString() {
-    return '${namespace.asString}:${reference.asString}';
+    return '${namespace.asString}:${reference.toString()}';
   }
 }

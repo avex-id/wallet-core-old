@@ -1,11 +1,11 @@
-import 'package:wallet_core/src/domain/caip/blockchain_id/namespace.dart';
-
+import 'namespace.dart';
 import 'blockchain_reference/bip122_reference.dart';
 import 'blockchain_reference/eip155_reference.dart';
 import 'blockchain_reference/solana_reference.dart';
 
 abstract class BlockchainReference {
-  String get asString;
+  @override
+  String toString();
 }
 
 mixin BlockchainReferenceMixin {
@@ -13,44 +13,59 @@ mixin BlockchainReferenceMixin {
       BlockchainNamespace namespace, String reference) {
     switch (namespace) {
       case BlockchainNamespace.eip155:
-        return Eip155BlockchainReference._(
-            Eip155ReferenceExtension.fromString(reference));
+        return Eip155BlockchainReference.fromReference(reference);
       case BlockchainNamespace.solana:
-        return SolanaBlockchainReference._(
-            SolanaReferenceExtension.fromString(reference));
+        return SolanaBlockchainReference.fromReference(reference);
       case BlockchainNamespace.bip122:
-        return Bip122BlockchainReference._(
-            Bip122ReferenceExtension.fromString(reference));
+        return Bip122BlockchainReference.fromReference(reference);
     }
   }
 }
 
-class SolanaBlockchainReference extends BlockchainReference
-    with BlockchainReferenceMixin {
-  SolanaBlockchainReference._(this._value);
+class SolanaBlockchainReference extends BlockchainReference {
+  final SolanaReference value;
 
-  final SolanaReference _value;
+  SolanaBlockchainReference(this.value);
+
+  factory SolanaBlockchainReference.fromReference(String reference) {
+    return SolanaBlockchainReference(
+        SolanaReferenceExtension.fromString(reference));
+  }
 
   @override
-  String get asString => _value.asString;
+  String toString() {
+    return value.asString;
+  }
 }
 
-class Bip122BlockchainReference extends BlockchainReference
-    with BlockchainReferenceMixin {
-  Bip122BlockchainReference._(this._value);
+class Bip122BlockchainReference extends BlockchainReference {
+  final Bip122Reference value;
 
-  final Bip122Reference _value;
+  Bip122BlockchainReference(this.value);
+
+  factory Bip122BlockchainReference.fromReference(String reference) {
+    return Bip122BlockchainReference(
+        Bip122ReferenceExtension.fromString(reference));
+  }
 
   @override
-  String get asString => _value.asString;
+  String toString() {
+    return value.asString;
+  }
 }
 
-class Eip155BlockchainReference extends BlockchainReference
-    with BlockchainReferenceMixin {
-  Eip155BlockchainReference._(this._value);
+class Eip155BlockchainReference extends BlockchainReference {
+  final Eip155Reference value;
 
-  final Eip155Reference _value;
+  Eip155BlockchainReference(this.value);
+
+  factory Eip155BlockchainReference.fromReference(String reference) {
+    return Eip155BlockchainReference(
+        Eip155ReferenceExtension.fromString(reference));
+  }
 
   @override
-  String get asString => _value.asString;
+  String toString() {
+    return value.asString;
+  }
 }
