@@ -14,7 +14,7 @@ class BlockchainAccountId {
     }
     final blockchainId = BlockchainId.fromString('${parts[0]}:${parts[1]}');
     final accountAddress =
-        AccountAddressMixin.fromString(blockchainId, parts[2]);
+        BlockchainAccountAddressMixin.fromString(blockchainId, parts[2]);
     return BlockchainAccountId(blockchainId, accountAddress);
   }
 

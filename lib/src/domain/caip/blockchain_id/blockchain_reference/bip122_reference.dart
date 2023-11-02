@@ -6,7 +6,7 @@ extension Bip122ReferenceExtension on Bip122Reference {
   String get asString {
     switch (this) {
       case Bip122Reference.BitcoinMainnet:
-        return '"000000000019d6689c085ae165831e93';
+        return '000000000019d6689c085ae165831e93';
       case Bip122Reference.BitcoinTestnet:
         return '000000000933ea01ad0ee984209779ba';
     }
@@ -47,6 +47,17 @@ extension Bip122NetworkParamsExtension on Bip122Reference {
           bech32Hrp: "tb",
           messagePrefix: "Bitcoin Signed Message:\n",
         );
+    }
+  }
+}
+
+extension Bip122CoinTypeExtension on Bip122Reference {
+  int get coinType {
+    switch (this) {
+      case Bip122Reference.BitcoinMainnet:
+        return 0;
+      case Bip122Reference.BitcoinTestnet:
+        return 1;
     }
   }
 }

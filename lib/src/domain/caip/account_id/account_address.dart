@@ -12,8 +12,9 @@ abstract class BlockchainAccountAddress {
   String toString();
 }
 
-mixin AccountAddressMixin {
-  static BlockchainAccountAddress fromString(BlockchainId blockchainId, String address) {
+mixin BlockchainAccountAddressMixin {
+  static BlockchainAccountAddress fromString(
+      BlockchainId blockchainId, String address) {
     switch (blockchainId.namespace) {
       case BlockchainNamespace.eip155:
         return Eip155AccountAddress.fromString(address);
@@ -21,10 +22,10 @@ mixin AccountAddressMixin {
         return SolanaAccountAddress.fromString(address);
       case BlockchainNamespace.bip122:
         switch (blockchainId.reference) {
-          case Bip122BlockchainReference(value: Bip122Reference.BitcoinMainnet):
+          case Bip122ReferenceWrapper(value: Bip122Reference.BitcoinMainnet):
             return Bip122AccountAddress.fromString(
                 Bip122Reference.BitcoinMainnet, address);
-          case Bip122BlockchainReference(value: Bip122Reference.BitcoinTestnet):
+          case Bip122ReferenceWrapper(value: Bip122Reference.BitcoinTestnet):
             return Bip122AccountAddress.fromString(
                 Bip122Reference.BitcoinTestnet, address);
           default:
@@ -36,7 +37,8 @@ mixin AccountAddressMixin {
   }
 }
 
-class Eip155AccountAddress extends BlockchainAccountAddress with AccountAddressMixin {
+class Eip155AccountAddress extends BlockchainAccountAddress
+    with BlockchainAccountAddressMixin {
   final EthereumAddress value;
 
   Eip155AccountAddress(this.value);
@@ -48,7 +50,8 @@ class Eip155AccountAddress extends BlockchainAccountAddress with AccountAddressM
   String toString() => value.hexEip55;
 }
 
-class SolanaAccountAddress extends BlockchainAccountAddress with AccountAddressMixin {
+class SolanaAccountAddress extends BlockchainAccountAddress
+    with BlockchainAccountAddressMixin {
   final Ed25519HDPublicKey value;
 
   SolanaAccountAddress(this.value);
@@ -60,7 +63,8 @@ class SolanaAccountAddress extends BlockchainAccountAddress with AccountAddressM
   String toString() => value.toBase58();
 }
 
-class Bip122AccountAddress extends BlockchainAccountAddress with AccountAddressMixin {
+class Bip122AccountAddress extends BlockchainAccountAddress
+    with BlockchainAccountAddressMixin {
   final Address value;
 
   Bip122AccountAddress(this.value);

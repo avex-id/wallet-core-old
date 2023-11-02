@@ -29,3 +29,12 @@ extension SolanaReferenceExtension on SolanaReference {
     }
   }
 }
+
+extension SolanaCoinTypeExtension on SolanaReference {
+  int get coinType {
+    switch (this) {
+      default:
+        return 501;
+    }
+  }
+}
