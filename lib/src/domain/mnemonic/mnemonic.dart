@@ -17,19 +17,18 @@ class MnemonicManager {
 
   String generate() => generateMnemonic(strength: strength);
 
-  bool validate(String mnemonic) => validateMnemonic(mnemonic);
-
-  String toSeedHex(String mnemonic) {
+  static bool validate(String mnemonic) => validateMnemonic(mnemonic);
+  static String toSeedHex(String mnemonic) {
     _validateMnemonic(mnemonic);
     return mnemonicToSeedHex(mnemonic);
   }
 
-  Uint8List toSeed(String mnemonic) {
+  static Uint8List toSeed(String mnemonic) {
     _validateMnemonic(mnemonic);
     return mnemonicToSeed(mnemonic);
   }
 
-  void _validateMnemonic(String mnemonic) {
+  static void _validateMnemonic(String mnemonic) {
     if (!validateMnemonic(mnemonic)) {
       throw ArgumentError(_INVALID_MNEMONIC);
     }

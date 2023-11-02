@@ -14,45 +14,45 @@ mixin BlockchainAssetNamespaceMixin {
       BlockchainId blockchainId, String namespace) {
     switch (blockchainId.namespace) {
       case BlockchainNamespace.eip155:
-        return Eip155BlockchainAssetNamespace.fromString(namespace);
+        return Eip155AssetNamespaceWrapper.fromString(namespace);
       case BlockchainNamespace.solana:
-        return SolanaBlockchainAssetNamespace.fromString(namespace);
+        return SolanaAssetNamespaceWrapper.fromString(namespace);
       case BlockchainNamespace.bip122:
-        return Bip122BlockchainAssetNamespace.fromString(namespace);
+        return Bip122AssetNamespaceWrapper.fromString(namespace);
     }
   }
 }
 
-class Bip122BlockchainAssetNamespace extends BlockchainAssetNamespace {
+class Bip122AssetNamespaceWrapper extends BlockchainAssetNamespace {
   final Bip122AssetNamespace value;
 
-  Bip122BlockchainAssetNamespace(this.value);
+  Bip122AssetNamespaceWrapper(this.value);
 
-  Bip122BlockchainAssetNamespace.fromString(String namespace)
+  Bip122AssetNamespaceWrapper.fromString(String namespace)
       : value = Bip122AssetNamespaceExtension.fromString(namespace);
 
   @override
   String toString() => value.asString;
 }
 
-class Eip155BlockchainAssetNamespace extends BlockchainAssetNamespace {
+class Eip155AssetNamespaceWrapper extends BlockchainAssetNamespace {
   final Eip155AssetNamespace value;
 
-  Eip155BlockchainAssetNamespace(this.value);
+  Eip155AssetNamespaceWrapper(this.value);
 
-  Eip155BlockchainAssetNamespace.fromString(String namespace)
+  Eip155AssetNamespaceWrapper.fromString(String namespace)
       : value = Eip155AssetNamespaceExtension.fromString(namespace);
 
   @override
   String toString() => value.asString;
 }
 
-class SolanaBlockchainAssetNamespace extends BlockchainAssetNamespace {
+class SolanaAssetNamespaceWrapper extends BlockchainAssetNamespace {
   final SolanaAssetNamespace value;
 
-  SolanaBlockchainAssetNamespace(this.value);
+  SolanaAssetNamespaceWrapper(this.value);
 
-  SolanaBlockchainAssetNamespace.fromString(String namespace)
+  SolanaAssetNamespaceWrapper.fromString(String namespace)
       : value = SolanaAssetNamespaceExtension.fromString(namespace);
 
   @override

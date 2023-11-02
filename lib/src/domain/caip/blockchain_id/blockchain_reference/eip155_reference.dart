@@ -119,3 +119,12 @@ extension Eip155ReferenceExtension on Eip155Reference {
     }
   }
 }
+
+extension Eip155CoinTypeExtension on Eip155Reference {
+  int get coinType {
+    switch (this) {
+      default:
+        return 60;
+    }
+  }
+}
