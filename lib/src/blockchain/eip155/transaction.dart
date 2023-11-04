@@ -1,26 +1,22 @@
 import 'dart:typed_data';
 import 'package:bip32_bip44/dart_bip32_bip44.dart';
 import 'package:wallet_core/src/model/transaction.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
 class Eip155Transaction extends TransactionWrapper {
+  static const int _EIP1559_TRANSACTION_TYPE = 0x02;
   final Transaction transaction;
 
   Eip155Transaction(this.transaction);
 
-  Eip155Transaction.fromTransaction(Transaction transaction)
-      : this(transaction);
-
   Eip155Transaction.transaction(
-      EthereumAddress from,
-      EthereumAddress to,
-      BigInt value,
-      Uint8List? data,
-      int? maxGas,
+      EthereumAddress from, EthereumAddress to, BigInt value, Uint8List? data,
+      {int? maxGas,
       BigInt? gasPrice,
       BigInt? maxFeePerGas,
       BigInt? maxPriorityFeePerGas,
-      int? nonce)
+      int? nonce})
       : this(_createTransaction(from, to, value, data, maxGas, gasPrice,
             maxFeePerGas, maxPriorityFeePerGas, nonce));
 
@@ -30,17 +26,17 @@ class Eip155Transaction extends TransactionWrapper {
       ContractFunction function,
       List<dynamic> params,
       BigInt? value,
-      int? maxGas,
+      {int? maxGas,
       BigInt? gasPrice,
       BigInt? maxFeePerGas,
       BigInt? maxPriorityFeePerGas,
-      int? nonce)
+      int? nonce})
       : this(_createContractTransaction(from, contract, function, params, value,
             maxGas, gasPrice, maxFeePerGas, maxPriorityFeePerGas, nonce));
 
-  Eip155Transaction updateTransaction(int? maxGas, BigInt? gasPrice,
-      BigInt? maxFeePerGas, BigInt? maxPriorityFeePerGas, int? nonce) {
-    return Eip155Transaction(transaction.copyWith(
+  void updateTransaction(int? maxGas, BigInt? gasPrice, BigInt? maxFeePerGas,
+      BigInt? maxPriorityFeePerGas, int? nonce) {
+    transaction.copyWith(
         maxGas: maxGas,
         gasPrice: gasPrice != null
             ? EtherAmount.fromBigInt(EtherUnit.wei, gasPrice)
@@ -51,7 +47,7 @@ class Eip155Transaction extends TransactionWrapper {
         maxPriorityFeePerGas: maxPriorityFeePerGas != null
             ? EtherAmount.fromBigInt(EtherUnit.wei, maxPriorityFeePerGas)
             : null,
-        nonce: nonce));
+        nonce: nonce);
   }
 
   static Transaction _createTransaction(
@@ -113,8 +109,12 @@ class Eip155Transaction extends TransactionWrapper {
         nonce: nonce);
   }
 
-  BigInt calculateTransactionFee(BigInt maxGas, BigInt? maxFeePerGas,
-      BigInt? maxPriorityFeePerGas, BigInt? gasPrice) {
+  BigInt calculateTransactionFee(
+      BigInt? maxFeePerGas, BigInt? maxPriorityFeePerGas, BigInt? gasPrice) {
+    if (transaction.maxGas == null) {
+      return throw ArgumentError('maxGas must be set');
+    }
+    BigInt maxGas = BigInt.from(transaction.maxGas!);
     if (maxFeePerGas != null || maxPriorityFeePerGas != null) {
       return maxGas *
           ((maxFeePerGas ?? BigInt.zero) +
@@ -136,16 +136,24 @@ class Eip155Transaction extends TransactionWrapper {
           transaction.maxFeePerGas != null ||
           transaction.maxPriorityFeePerGas != null);
 
-  Future<Uint8List> signRawTransaction(ExtendedKey key, int chainId) async {
+  Uint8List signRawTransaction(ExtendedKey key, int chainId) {
     Uint8List signedTransaction = signTransactionRaw(
         transaction, EthPrivateKey.fromHex(key.privateKeyHex()),
         chainId: chainId);
     if (transaction.isEIP1559) {
-      signedTransaction = prependTransactionType(0x02, signedTransaction);
+      signedTransaction =
+          prependTransactionType(_EIP1559_TRANSACTION_TYPE, signedTransaction);
     }
-    // return bytesToHex(signedTransaction,
-    //     include0x: true, padToEvenLength: true);
     return signedTransaction;
+  }
+
+  String transactionHash(Uint8List transaction) {
+    return bytesToHex(keccak256(transaction),
+        include0x: true, padToEvenLength: true);
+  }
+
+  String transactionHex(Uint8List transaction) {
+    return bytesToHex(transaction, include0x: true, padToEvenLength: true);
   }
 }
 
@@ -154,7 +162,7 @@ class NativeEip155TransactionHelper extends Eip155Transaction {
 
   NativeEip155TransactionHelper.transfer(
       EthereumAddress from, EthereumAddress to, BigInt value)
-      : super.transaction(from, to, value, null, null, null, null, null, null);
+      : super.transaction(from, to, value, null);
 }
 
 class Eip155Erc20TransactionHelper extends Eip155Transaction {
@@ -163,9 +171,9 @@ class Eip155Erc20TransactionHelper extends Eip155Transaction {
   Eip155Erc20TransactionHelper(this.contract) : super(Transaction());
 
   Eip155Transaction approve(EthereumAddress owner, EthereumAddress spender) {
-    var function = contract.function('approve');
-    return Eip155Transaction.contractTransaction(owner, contract, function,
-        [spender], null, null, null, null, null, null);
+    ContractFunction function = contract.function('approve');
+    return Eip155Transaction.contractTransaction(
+        owner, contract, function, [spender], null);
   }
 
   Eip155Transaction transfer(
@@ -173,9 +181,9 @@ class Eip155Erc20TransactionHelper extends Eip155Transaction {
     EthereumAddress to,
     BigInt amount,
   ) {
-    var function = contract.function('transfer');
-    return Eip155Transaction.contractTransaction(from, contract, function,
-        [to, amount], null, null, null, null, null, null);
+    ContractFunction function = contract.function('transfer');
+    return Eip155Transaction.contractTransaction(
+        from, contract, function, [to, amount], null);
   }
 }
 
@@ -190,19 +198,9 @@ class Eip155Erc721TransactionHelper extends Eip155Transaction {
     EthereumAddress spender,
     BigInt tokenId,
   ) {
-    var function = contract.function('approve');
+    ContractFunction function = contract.function('approve');
     return Eip155Transaction.contractTransaction(
-      owner,
-      contract,
-      function,
-      [spender, tokenId],
-      null,
-      null,
-      null,
-      null,
-      null,
-      null,
-    );
+        owner, contract, function, [spender, tokenId], null);
   }
 
   Eip155Transaction transfer(
@@ -211,9 +209,9 @@ class Eip155Erc721TransactionHelper extends Eip155Transaction {
     EthereumAddress from,
     BigInt tokenId,
   ) {
-    var function = contract.function('safeTransferFrom');
-    return Eip155Transaction.contractTransaction(to, contract, function,
-        [to, from, tokenId], null, null, null, null, null, null);
+    ContractFunction function = contract.function('safeTransferFrom');
+    return Eip155Transaction.contractTransaction(
+        to, contract, function, [to, from, tokenId], null);
   }
 
   Eip155Transaction approveAll(
@@ -223,13 +221,14 @@ class Eip155Erc721TransactionHelper extends Eip155Transaction {
     EthereumAddress from,
     BigInt tokenId,
   ) {
-    var function = contract.function('setApprovalForAll');
-    return Eip155Transaction.contractTransaction(to, contract, function,
-        [to, approved], null, null, null, null, null, null);
+    ContractFunction function = contract.function('setApprovalForAll');
+    return Eip155Transaction.contractTransaction(
+        to, contract, function, [to, approved], null);
   }
 }
 
 class Eip155Erc1155TransactionHelper extends Eip155Transaction {
+  static const String _EMPTY_DATA = '0x0';
   final DeployedContract contract;
 
   Eip155Erc1155TransactionHelper(this.contract) : super(Transaction());
@@ -240,9 +239,9 @@ class Eip155Erc1155TransactionHelper extends Eip155Transaction {
     EthereumAddress spender,
     BigInt tokenId,
   ) {
-    var function = contract.function('isApprovedForAll');
-    return Eip155Transaction.contractTransaction(owner, contract, function,
-        [owner, spender], null, null, null, null, null, null);
+    ContractFunction function = contract.function('isApprovedForAll');
+    return Eip155Transaction.contractTransaction(
+        owner, contract, function, [owner, spender], null);
   }
 
   Eip155Transaction approveAll(
@@ -252,9 +251,9 @@ class Eip155Erc1155TransactionHelper extends Eip155Transaction {
     EthereumAddress spender,
     BigInt tokenId,
   ) {
-    var function = contract.function('setApprovalForAll');
-    return Eip155Transaction.contractTransaction(owner, contract, function,
-        [spender, approved], null, null, null, null, null, null);
+    ContractFunction function = contract.function('setApprovalForAll');
+    return Eip155Transaction.contractTransaction(
+        owner, contract, function, [spender, approved], null);
   }
 
   Eip155Transaction transfer(
@@ -264,9 +263,9 @@ class Eip155Erc1155TransactionHelper extends Eip155Transaction {
     BigInt tokenId,
     BigInt amount,
   ) {
-    var function = contract.function('safeTransferFrom');
-    return Eip155Transaction.contractTransaction(to, contract, function,
-        [from, to, tokenId, amount, '0x0'], null, null, null, null, null, null);
+    ContractFunction function = contract.function('safeTransferFrom');
+    return Eip155Transaction.contractTransaction(
+        to, contract, function, [from, to, tokenId, amount, _EMPTY_DATA], null);
   }
 
   Eip155Transaction batchTransfer(
@@ -276,17 +275,13 @@ class Eip155Erc1155TransactionHelper extends Eip155Transaction {
     List<BigInt> tokenIds,
     List<BigInt> amounts,
   ) {
-    var function = contract.function('safeBatchTransferFrom');
+    ContractFunction function = contract.function('safeBatchTransferFrom');
     return Eip155Transaction.contractTransaction(
-        to,
-        contract,
-        function,
-        [from, to, tokenIds, amounts, '0x0'],
-        null,
-        null,
-        null,
-        null,
-        null,
-        null);
+      to,
+      contract,
+      function,
+      [from, to, tokenIds, amounts, _EMPTY_DATA],
+      null,
+    );
   }
 }

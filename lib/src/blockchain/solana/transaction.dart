@@ -7,19 +7,17 @@ class SolanaTransaction extends TransactionWrapper {
 
   SolanaTransaction(this.compiledMessage);
 
-  SolanaTransaction.compileMessage(
-      List<Instruction> instructions,
-      String recentBlockhash,
-      Ed25519HDPublicKey feePayer,
-      List<AddressLookupTableAccount>? addressLookupTableAccounts)
+  SolanaTransaction.compileMessage(List<Instruction> instructions,
+      String recentBlockhash, Ed25519HDPublicKey feePayer,
+      {List<AddressLookupTableAccount>? addressLookupTableAccounts})
       : this(addressLookupTableAccounts != null
             ? _compileMessageVersioned(
-                generateMessageForInstructions(instructions),
+                _generateMessageForInstructions(instructions),
                 recentBlockhash,
                 feePayer,
                 addressLookupTableAccounts)
             : _compileMessageLegacy(
-                generateMessageForInstructions(instructions),
+                _generateMessageForInstructions(instructions),
                 recentBlockhash,
                 feePayer));
 
@@ -46,12 +44,10 @@ class SolanaTransaction extends TransactionWrapper {
         addressLookupTableAccounts: addressLookupTableAccounts);
   }
 
-  static Message generateMessageForInstructions(
+  static Message _generateMessageForInstructions(
       List<Instruction> instructions) {
     return Message(instructions: instructions);
   }
-
-  
 
   Future<Signature> signCompiledMessage(Ed25519HDKeyPair signer) async {
     return await signer.sign(compiledMessage.toByteArray());
@@ -64,6 +60,14 @@ class SolanaTransaction extends TransactionWrapper {
       compiledMessage: compiledMessage,
     );
   }
+
+  String transactionHash(SignedTx transaction) {
+    return transaction.id;
+  }
+
+  String transactionHex(SignedTx transaction) {
+    return transaction.encode();
+  }
 }
 
 class NativeSolanaTransactionHelper extends SolanaTransaction {
@@ -74,8 +78,7 @@ class NativeSolanaTransactionHelper extends SolanaTransaction {
       : super.compileMessage(
           [_instructionForSolTransfer(from, to, value)],
           recentBlockhash,
-          from,
-          null,
+          from
         );
 
   static SystemInstruction _instructionForSolTransfer(
@@ -121,8 +124,7 @@ class SplSolanaTransactionHelper extends SolanaTransaction {
         ),
       ],
       recentBlockhash,
-      source,
-      null,
+      source
     );
   }
 
