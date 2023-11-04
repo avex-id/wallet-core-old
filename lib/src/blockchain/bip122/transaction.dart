@@ -1,12 +1,11 @@
-import 'dart:typed_data';
-
 import 'package:coinlib/coinlib.dart';
-
+import 'package:hex/hex.dart';
 import '../../api/mempool/api.dart';
 import '../../model/transaction.dart';
-import 'utils/utxo.dart';
+import 'utils/utxo_builder.dart';
 
 class Bip122Transaction extends TransactionWrapper {
+  static const int _TRANSACTION_VERSION = 2;
   final Transaction transaction;
 
   Bip122Transaction(this.transaction);
@@ -16,64 +15,37 @@ class Bip122Transaction extends TransactionWrapper {
 
   Bip122Transaction.fromInputAndOutputList(
       List<Input> inputs, List<Output> outputs,
-      {int version = 2})
+      {int version = _TRANSACTION_VERSION})
       : this(Transaction(inputs: inputs, outputs: outputs, version: version));
 
-  List<P2WPKHInput> _createTransactionInputList(
-      List<Utxo> selectedUtxoList, ECPublicKey publicKey) {
-    List<P2WPKHInput> inputs = [];
-    for (var utxo in selectedUtxoList) {
-      var outPoint = _createOutPoint(
-          Uint8List.fromList(hexToBytes(utxo.txid).reversed.toList()),
-          utxo.vout);
-      var input = _createP2WPKHInput(outPoint, publicKey);
-      inputs.add(input);
+  void signInputs(WIF wif, List<Utxo> selectedUtxoList) {
+    for (var i = 0; i < transaction.inputs.length; i++) {
+      var id = HEX.encode(transaction.inputs[i].prevOut.hash.reversed.toList());
+      var utxo = selectedUtxoList.firstWhere((element) => element.txid == id);
+      _signTransaction(wif.privkey, BigInt.from(utxo.value), i);
     }
-    return inputs;
   }
 
-  List<Output> _createTransactionOutputList(
-      BigInt totalUtxoValue,
-      int utxoCount,
-      BigInt amountToSend,
-      int feeRate,
-      P2WPKHAddress segWitAccount,
-      Address destination) {
-    List<Output> outputs = [];
-    BigInt minFee = BigInt.zero;
-    if (totalUtxoValue > amountToSend) {
-      minFee = BigInt.from(feeRate *
-          calculateVirtualSize(utxoCount, [
-            destination.program.runtimeType.toString(),
-            segWitAccount.program.runtimeType.toString()
-          ]));
-      var change = totalUtxoValue - amountToSend - minFee;
-      if (change > BigInt.zero) {
-        var changeOutput = _createOutput(change, segWitAccount);
-        outputs.add(changeOutput);
-      }
-      var output = _createOutput(amountToSend, destination);
-      outputs.add(output);
-    }
-    return outputs;
+  BigInt calculateTransactionFee(BigInt totalUtxoValue) {
+    return totalUtxoValue - totalOutputValue;
   }
 
-  Transaction signTransaction(ECPrivateKey key, BigInt value, int vin) {
-    return transaction.sign(inputN: vin, key: key, value: value);
+  void _signTransaction(ECPrivateKey key, BigInt value, int vin) {
+    transaction.sign(inputN: vin, key: key, value: value);
   }
 
-  OutPoint _createOutPoint(Uint8List txHash, int vout) =>
-      OutPoint(txHash, vout);
+  BigInt get totalOutputValue =>
+      transaction.outputs.fold(BigInt.zero, (sum, output) {
+        return sum + output.value;
+      });
 
-  P2WPKHInput _createP2WPKHInput(OutPoint prevOut, ECPublicKey key) =>
-      P2WPKHInput(prevOut: prevOut, publicKey: key, sequence: 0xfffffffd);
+  String get transactionId => transaction.txid;
 
-  Output _createOutput(BigInt amount, Address address) =>
-      Output.fromAddress(amount, address);
+  String get transactionHex => transaction.toHex();
 }
 
 class NativeBip122Transaction extends Bip122Transaction {
-  NativeBip122Transaction(Transaction transaction) : super(transaction);
+  NativeBip122Transaction() : super(Transaction(inputs: [], outputs: []));
 
   Bip122Transaction transfer(
     ECPublicKey publicKey,
@@ -81,35 +53,22 @@ class NativeBip122Transaction extends Bip122Transaction {
     Address destination,
     BigInt amount,
     int feeRate,
-    List<Utxo> utxoList,
+    List<Utxo> selectedUtxoList,
   ) {
-    List<Utxo> selectedUtxoList = selectUtxoToSpend(
-      utxoList,
-      destination,
+    var utxoList = UtxoHelper(selectedUtxoList);
+    // ..sortUtxo()
+    // ..filterUnConfirmedUtxo()
+    // ..toSpend(segWitAccount, destination, amount, feeRate);
+    if (utxoList.isEmpty) {
+      throw Exception('Insufficient funds');
+    }
+    var inputs = utxoList.generateInputs(publicKey);
+    var outputs = utxoList.generateOutputs(
       segWitAccount,
+      destination,
       amount,
       feeRate,
     );
-    if (selectedUtxoList.isEmpty) {
-      throw Exception('Insufficient funds');
-    }
-    BigInt totalUtxoValue = BigInt.zero;
-    BigInt totalOutputValue = BigInt.zero;
-    for (var utxo in selectedUtxoList) {
-      totalUtxoValue += BigInt.from(utxo.value);
-    }
-    List<P2WPKHInput> inputs =
-        _createTransactionInputList(selectedUtxoList, publicKey);
-    List<Output> outputs = _createTransactionOutputList(totalUtxoValue,
-        selectedUtxoList.length, amount, feeRate, segWitAccount, destination);
-    for (var output in outputs) {
-      totalOutputValue += output.value;
-    }
     return Bip122Transaction.fromInputAndOutputList(inputs, outputs);
-    // for (var i = 0; i < inputs.length; i++) {
-    //   var signedTransaction = signTransaction(
-    //       wif.privkey, transaction, BigInt.from(selectedUtxoList[i].value), i);
-    //   transaction = signedTransaction;
-    // }
   }
 }
