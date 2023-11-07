@@ -1,23 +1,24 @@
 import 'package:coinlib/coinlib.dart';
+import '../reference.dart';
 
-enum Bip122Reference { BitcoinMainnet, BitcoinTestnet }
+enum Bip122Reference implements BlockchainReference {
+  bitcoinMainnet('000000000019d6689c085ae165831e93', 'Bitcoin Mainnet'),
+  bitcoinTestnet('000000000933ea01ad0ee984209779ba', 'Bitcoin Testnet');
 
-extension Bip122ReferenceExtension on Bip122Reference {
-  String get asString {
-    switch (this) {
-      case Bip122Reference.BitcoinMainnet:
-        return '000000000019d6689c085ae165831e93';
-      case Bip122Reference.BitcoinTestnet:
-        return '000000000933ea01ad0ee984209779ba';
-    }
-  }
+  const Bip122Reference(this.value, this.name);
+
+  final String value;
+  final String name;
+
+  @override
+  String toString() => value;
 
   static Bip122Reference fromString(String reference) {
     switch (reference) {
       case '000000000019d6689c085ae165831e93':
-        return Bip122Reference.BitcoinMainnet;
+        return Bip122Reference.bitcoinMainnet;
       case '000000000933ea01ad0ee984209779ba':
-        return Bip122Reference.BitcoinTestnet;
+        return Bip122Reference.bitcoinTestnet;
       default:
         throw Exception("Unknown Blockchain Reference: $reference");
     }
@@ -27,7 +28,7 @@ extension Bip122ReferenceExtension on Bip122Reference {
 extension Bip122NetworkParamsExtension on Bip122Reference {
   NetworkParams get networkParams {
     switch (this) {
-      case Bip122Reference.BitcoinMainnet:
+      case Bip122Reference.bitcoinMainnet:
         return NetworkParams(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
@@ -37,7 +38,7 @@ extension Bip122NetworkParamsExtension on Bip122Reference {
           bech32Hrp: "bc",
           messagePrefix: "Bitcoin Signed Message:\n",
         );
-      case Bip122Reference.BitcoinTestnet:
+      case Bip122Reference.bitcoinTestnet:
         return NetworkParams(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
@@ -54,9 +55,9 @@ extension Bip122NetworkParamsExtension on Bip122Reference {
 extension Bip122CoinTypeExtension on Bip122Reference {
   int get coinType {
     switch (this) {
-      case Bip122Reference.BitcoinMainnet:
+      case Bip122Reference.bitcoinMainnet:
         return 0;
-      case Bip122Reference.BitcoinTestnet:
+      case Bip122Reference.bitcoinTestnet:
         return 1;
     }
   }

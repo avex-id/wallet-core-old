@@ -1,29 +1,26 @@
-enum SolanaReference {
-  SolanaMainnet,
-  SolanaTestnet,
-  SolanaDevnet,
-}
+import '../reference.dart';
 
-extension SolanaReferenceExtension on SolanaReference {
-  String get asString {
-    switch (this) {
-      case SolanaReference.SolanaMainnet:
-        return "mainnet";
-      case SolanaReference.SolanaTestnet:
-        return "testnet";
-      case SolanaReference.SolanaDevnet:
-        return "devnet";
-    }
-  }
+enum SolanaReference implements BlockchainReference {
+  solanaMainnet('mainnet', 'Solana Mainnet'),
+  solanaTestnet('testnet', 'Solana Testnet'),
+  solanaDevnet('devnet', 'Solana Devnet');
+
+  const SolanaReference(this.value, this.name);
+
+  final String value;
+  final String name;
+
+  @override
+  String toString() => value;
 
   static SolanaReference fromString(String reference) {
     switch (reference) {
-      case "mainnet":
-        return SolanaReference.SolanaMainnet;
-      case "testnet":
-        return SolanaReference.SolanaTestnet;
-      case "devnet":
-        return SolanaReference.SolanaDevnet;
+      case 'mainnet':
+        return SolanaReference.solanaMainnet;
+      case 'testnet':
+        return SolanaReference.solanaTestnet;
+      case 'devnet':
+        return SolanaReference.solanaDevnet;
       default:
         throw Exception("Unknown Blockchain Reference: $reference");
     }

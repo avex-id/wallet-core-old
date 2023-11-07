@@ -1,19 +1,19 @@
-enum Bip122AssetNamespace {
-  Slip44,
-}
+import '../asset_namespace.dart';
 
-extension Bip122AssetNamespaceExtension on Bip122AssetNamespace {
-  String get asString {
-    switch (this) {
-      case Bip122AssetNamespace.Slip44:
-        return 'slip44';
-    }
-  }
+enum Bip122AssetNamespace implements BlockchainAssetNamespace {
+  slip44('slip44');
+
+  const Bip122AssetNamespace(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
 
   static Bip122AssetNamespace fromString(String namespace) {
     switch (namespace) {
       case 'slip44':
-        return Bip122AssetNamespace.Slip44;
+        return Bip122AssetNamespace.slip44;
       default:
         throw Exception("Unknown Asset Namespace: $namespace");
     }

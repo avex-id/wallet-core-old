@@ -1,21 +1,22 @@
-enum SolanaAssetNamespace { Slip44, Spl }
+import '../asset_namespace.dart';
 
-extension SolanaAssetNamespaceExtension on SolanaAssetNamespace {
-  String get asString {
-    switch (this) {
-      case SolanaAssetNamespace.Slip44:
-        return 'slip44';
-      case SolanaAssetNamespace.Spl:
-        return 'spl';
-    }
-  }
+enum SolanaAssetNamespace implements BlockchainAssetNamespace {
+  slip44('slip44'),
+  spl('spl');
+
+  const SolanaAssetNamespace(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
 
   static SolanaAssetNamespace fromString(String namespace) {
     switch (namespace) {
       case 'slip44':
-        return SolanaAssetNamespace.Slip44;
+        return SolanaAssetNamespace.slip44;
       case 'spl':
-        return SolanaAssetNamespace.Spl;
+        return SolanaAssetNamespace.spl;
       default:
         throw Exception("Unknown Asset Namespace: $namespace");
     }
