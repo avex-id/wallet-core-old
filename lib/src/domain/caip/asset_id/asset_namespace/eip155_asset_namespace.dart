@@ -1,34 +1,28 @@
-enum Eip155AssetNamespace {
-  Slip44,
-  Erc20,
-  Erc721,
-  Erc1155,
-}
+import '../asset_namespace.dart';
 
-extension Eip155AssetNamespaceExtension on Eip155AssetNamespace {
-  String get asString {
-    switch (this) {
-      case Eip155AssetNamespace.Slip44:
-        return 'slip44';
-      case Eip155AssetNamespace.Erc20:
-        return 'erc20';
-      case Eip155AssetNamespace.Erc721:
-        return 'erc721';
-      case Eip155AssetNamespace.Erc1155:
-        return 'erc1155';
-    }
-  }
+enum Eip155AssetNamespace implements BlockchainAssetNamespace {
+  slip44('slip44'),
+  erc20('erc20'),
+  erc721('erc721'),
+  erc1155('erc1155');
+
+  const Eip155AssetNamespace(this.value);
+
+  final String value;
+
+  @override
+  String toString() => value;
 
   static Eip155AssetNamespace fromString(String namespace) {
     switch (namespace) {
       case 'slip44':
-        return Eip155AssetNamespace.Slip44;
+        return Eip155AssetNamespace.slip44;
       case 'erc20':
-        return Eip155AssetNamespace.Erc20;
+        return Eip155AssetNamespace.erc20;
       case 'erc721':
-        return Eip155AssetNamespace.Erc721;
+        return Eip155AssetNamespace.erc721;
       case 'erc1155':
-        return Eip155AssetNamespace.Erc1155;
+        return Eip155AssetNamespace.erc1155;
       default:
         throw Exception("Unknown Asset Namespace: $namespace");
     }

@@ -34,12 +34,12 @@ class BlockchainAccountId<T> {
   static BlockchainAccountId fromString(String accountId) {
     final parts = accountId.split(':');
     if (parts.length != 3) {
-      throw Exception('Invalid account id');
+      throw Exception('Invalid Blockchain Account ID');
     }
     final blockchainId = BlockchainId.fromString('${parts[0]}:${parts[1]}');
     if (blockchainId.namespace == BlockchainNamespace.eip155) {
       return BlockchainAccountId<EthereumAddress>(
-          blockchainId, EthereumAddress.fromHex(parts[2]));
+          blockchainId, EthereumAddress.fromHex(parts[2], enforceEip55: true));
     } else if (blockchainId.namespace == BlockchainNamespace.solana) {
       return BlockchainAccountId<Ed25519HDPublicKey>(
           blockchainId, Ed25519HDPublicKey.fromBase58(parts[2]));
@@ -49,7 +49,7 @@ class BlockchainAccountId<T> {
           Address.fromString(parts[2],
               (blockchainId.reference as Bip122Reference).networkParams));
     } else {
-      throw Exception("Invalid Blockchain ID: $blockchainId");
+      throw Exception("Invalid Blockchain ID: ${blockchainId.toString()}");
     }
   }
 
@@ -65,7 +65,7 @@ class BlockchainAccountId<T> {
       case Address:
         return "${blockchainId.toString()}:${(accountAddress as Address).toString()}";
       default:
-        throw Exception("Invalid Blockchain ID: $blockchainId");
+        throw Exception("Invalid Blockchain Account ID");
     }
   }
 }
