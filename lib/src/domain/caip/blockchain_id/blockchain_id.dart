@@ -4,52 +4,100 @@ import 'blockchain_reference/solana_reference.dart';
 import 'reference.dart';
 import 'namespace.dart';
 
-class BlockchainId<T extends BlockchainReference> {
-  final BlockchainNamespace namespace;
-  final T reference;
-
-  BlockchainId(this.namespace, this.reference) {
-    if (namespace == BlockchainNamespace.eip155) {
-      if (reference is! Eip155Reference) {
-        throw Exception(
-            "Invalid Blockchain Reference for: ${namespace.toString()}");
-      }
-    }
-    if (namespace == BlockchainNamespace.solana) {
-      if (reference is! SolanaReference) {
-        throw Exception(
-            "Invalid Blockchain Reference for: ${namespace.toString()}");
-      }
-    }
-    if (namespace == BlockchainNamespace.bip122) {
-      if (reference is! Bip122Reference) {
-        throw Exception(
-            "Invalid Blockchain Reference for: ${namespace.toString()}");
-      }
-    }
-  }
-
-  static BlockchainId fromString(String blockchainId) {
+abstract class BlockchainId<T extends BlockchainReference> {
+  static const String _INVALID_BLOCKCHAIN_ID = 'Invalid Blockchain Id';
+  BlockchainNamespace get namespace;
+  T get reference;
+  static BlockchainId parse(String blockchainId) {
     final parts = blockchainId.split(':');
-    if (parts.length != 2) {
-      throw Exception("Invalid Blockchain ID: $blockchainId");
-    }
-    final BlockchainReference reference;
-    final namespace = BlockchainNamespace.fromString(parts[0]);
-    if (namespace == BlockchainNamespace.eip155) {
-      reference = Eip155Reference.fromString(parts[1]);
-    } else if (namespace == BlockchainNamespace.solana) {
-      reference = SolanaReference.fromString(parts[1]);
-    } else if (namespace == BlockchainNamespace.bip122) {
-      reference = Bip122Reference.fromString(parts[1]);
-    } else {
-      throw Exception("Invalid Blockchain ID: $blockchainId");
-    }
-    return BlockchainId(namespace, reference);
+    if (parts.length != 2) throw Exception(_INVALID_BLOCKCHAIN_ID);
+    return BlockchainIdFactoryProducer.getFactory(
+            BlockchainNamespace.fromString(parts[0]))
+        .fromString(parts[1]);
   }
+}
+
+class Eip155BlockchainId implements BlockchainId<Eip155Reference> {
+  @override
+  final BlockchainNamespace namespace = BlockchainNamespace.eip155;
+
+  @override
+  final Eip155Reference reference;
+
+  Eip155BlockchainId(this.reference);
 
   @override
   String toString() {
     return '${namespace.toString()}:${reference.toString()}';
+  }
+}
+
+class SolanaBlockchainId implements BlockchainId<SolanaReference> {
+  @override
+  final BlockchainNamespace namespace = BlockchainNamespace.solana;
+
+  @override
+  final SolanaReference reference;
+
+  SolanaBlockchainId(this.reference);
+
+  @override
+  String toString() {
+    return '${namespace.toString()}:${reference.toString()}';
+  }
+}
+
+class Bip122BlockchainId implements BlockchainId<Bip122Reference> {
+  @override
+  final BlockchainNamespace namespace = BlockchainNamespace.bip122;
+
+  @override
+  final Bip122Reference reference;
+
+  Bip122BlockchainId(this.reference);
+
+  @override
+  String toString() {
+    return '${namespace.toString()}:${reference.toString()}';
+  }
+}
+
+abstract class BlockchainIdFactory<T extends BlockchainReference> {
+  BlockchainId<T> fromString(String reference);
+}
+
+class SolanaBlockchainIdFactory extends BlockchainIdFactory<SolanaReference> {
+  @override
+  SolanaBlockchainId fromString(String reference) {
+    return SolanaBlockchainId(SolanaReference.fromString(reference));
+  }
+}
+
+class Eip155BlockchainIdFactory extends BlockchainIdFactory<Eip155Reference> {
+  @override
+  Eip155BlockchainId fromString(String reference) {
+    return Eip155BlockchainId(Eip155Reference.fromString(reference));
+  }
+}
+
+class Bip122BlockchainIdFactory extends BlockchainIdFactory<Bip122Reference> {
+  @override
+  Bip122BlockchainId fromString(String reference) {
+    return Bip122BlockchainId(Bip122Reference.fromString(reference));
+  }
+}
+
+class BlockchainIdFactoryProducer {
+  static BlockchainIdFactory getFactory(BlockchainNamespace namespace) {
+    switch (namespace) {
+      case BlockchainNamespace.eip155:
+        return Eip155BlockchainIdFactory();
+      case BlockchainNamespace.solana:
+        return SolanaBlockchainIdFactory();
+      case BlockchainNamespace.bip122:
+        return Bip122BlockchainIdFactory();
+      default:
+        throw Exception('Invalid Blockchain Namespace');
+    }
   }
 }
