@@ -46,6 +46,7 @@ class TransactionSize {
 
     double inputSize = 0;
     int inputWitnessSize = 0;
+
     switch (inputScriptType) {
       case "P2PKH":
         inputSize = _P2PKH_INPUT_SIZE.toDouble();
@@ -89,7 +90,7 @@ class TransactionSize {
           inputSize += 32 + 3;
         }
     }
-    double txVBytes =
+    final double txVBytes =
         _getTxOverheadVBytes(inputScriptType, inputCount, outputCount) +
             (inputSize * inputCount) +
             (p2pkhOutputCount * _P2PKH_OUTPUT_SIZE) +
@@ -99,10 +100,12 @@ class TransactionSize {
             (p2wpkhOutputCount * _P2WPKH_OUTPUT_SIZE) +
             (p2wshOutputCount * _P2WSH_OUTPUT_SIZE) +
             (p2trOutputCount * _P2TR_OUTPUT_SIZE);
-    double txBytes = _getTxOverheadExtraRawBytes(inputScriptType, inputCount) +
-        txVBytes +
-        ((inputWitnessSize * inputCount) * 3 / 4);
-    int txWeight = txVBytes.ceil() * 4;
+    final double txBytes =
+        _getTxOverheadExtraRawBytes(inputScriptType, inputCount) +
+            txVBytes +
+            ((inputWitnessSize * inputCount) * 3 / 4);
+    final int txWeight = txVBytes.ceil() * 4;
+
     return TransactionSize(
       txVBytes: txVBytes.ceil(),
       txBytes: txBytes,
