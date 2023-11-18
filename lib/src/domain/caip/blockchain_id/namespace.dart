@@ -23,3 +23,16 @@ enum BlockchainNamespace {
     }
   }
 }
+
+extension Bip44PurposeExtension on BlockchainNamespace {
+  int get bip44Purpose {
+    switch (this) {
+      case BlockchainNamespace.eip155:
+        return 44;
+      case BlockchainNamespace.solana:
+        return 44;
+      case BlockchainNamespace.bip122:
+        return 84;
+    }
+  }
+}

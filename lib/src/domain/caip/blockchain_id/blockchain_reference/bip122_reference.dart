@@ -53,7 +53,7 @@ extension Bip122NetworkParamsExtension on Bip122Reference {
 }
 
 extension Bip122CoinTypeExtension on Bip122Reference {
-  int get coinType {
+  int get bip44CoinType {
     switch (this) {
       case Bip122Reference.bitcoinMainnet:
         return 0;

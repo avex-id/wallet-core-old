@@ -28,7 +28,7 @@ enum SolanaReference implements BlockchainReference {
 }
 
 extension SolanaCoinTypeExtension on SolanaReference {
-  int get coinType {
+  int get bip44CoinType {
     switch (this) {
       default:
         return 501;

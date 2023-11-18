@@ -34,7 +34,7 @@ enum Eip155Reference implements BlockchainReference {
 }
 
 extension Eip155CoinTypeExtension on Eip155Reference {
-  int get coinType {
+  int get bip44CoinType {
     switch (this) {
       default:
         return 60;
