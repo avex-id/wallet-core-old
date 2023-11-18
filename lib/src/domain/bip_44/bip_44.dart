@@ -181,15 +181,14 @@ class SolanaDerivationPathFactory
 
 class DerivationPathFactoryProducer {
   static DerivationPathFactory getFactory(BlockchainId blockchainId) {
-    switch (blockchainId.namespace) {
-      case BlockchainNamespace.eip155:
-        return Eip155DerivationPathFactory(blockchainId as Eip155BlockchainId);
-      case BlockchainNamespace.bip122:
-        return Bip122DerivationPathFactory(blockchainId as Bip122BlockchainId);
-      case BlockchainNamespace.solana:
-        return SolanaDerivationPathFactory(blockchainId as SolanaBlockchainId);
-      default:
-        throw Exception("Unknown Blockchain Namespace: $blockchainId");
+    if (blockchainId is Eip155BlockchainId) {
+      return Eip155DerivationPathFactory(blockchainId);
+    } else if (blockchainId is Bip122BlockchainId) {
+      return Bip122DerivationPathFactory(blockchainId);
+    } else if (blockchainId is SolanaBlockchainId) {
+      return SolanaDerivationPathFactory(blockchainId);
+    } else {
+      throw Exception("Unknown Blockchain Namespace: $blockchainId");
     }
   }
 }
