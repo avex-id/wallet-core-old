@@ -4,12 +4,12 @@ import '../../../api/mempool/api.dart';
 
 class UtxoHelper {
   static const int _SEQUENCE = 0xfffffffd;
-  final List<Utxo> _utxoList;
+  List<Utxo> utxoList;
 
-  UtxoHelper(this._utxoList);
+  UtxoHelper(this.utxoList);
 
   void sortUtxo() {
-    _utxoList.sort((a, b) {
+    utxoList.sort((a, b) {
       if (a.status.confirmed && !b.status.confirmed) {
         return -1;
       } else if (!a.status.confirmed && b.status.confirmed) {
@@ -21,7 +21,7 @@ class UtxoHelper {
   }
 
   void filterUnConfirmedUtxo() {
-    _utxoList.removeWhere((utxo) => utxo.status.confirmed == false);
+    utxoList.removeWhere((utxo) => utxo.status.confirmed == false);
   }
 
   void toSpend(Address spenderAddress, Address receiverAddress,
@@ -30,59 +30,45 @@ class UtxoHelper {
     BigInt utxoValueSum = BigInt.zero;
     BigInt fee = BigInt.zero;
 
-    for (int i = 0; i < _utxoList.length; i++) {
-      final utxo = _utxoList[i];
-      utxoToSpend.add(utxo);
-      utxoValueSum += BigInt.from(utxo.value);
-      fee = BigInt.from(feeRate *
-          _calculateVirtualSize(utxoToSpend.length,
-              [receiverAddress.program.runtimeType.toString()]));
-      if (utxoValueSum >= valueToSpend + fee) {
-        break;
-      }
-    }
+    bool hasEnoughFunds() => utxoValueSum >= valueToSpend + fee;
 
-    if (utxoValueSum < valueToSpend + fee) {
-      utxoToSpend = [];
-      utxoValueSum = BigInt.zero;
-      fee = BigInt.zero;
-      for (int i = 0; i < _utxoList.length; i++) {
-        final utxo = _utxoList[i];
+    void processUtxoList(List<Utxo> list) {
+      for (final utxo in list) {
         utxoToSpend.add(utxo);
         utxoValueSum += BigInt.from(utxo.value);
         fee = BigInt.from(feeRate *
             _calculateVirtualSize(utxoToSpend.length,
                 [receiverAddress.program.runtimeType.toString()]));
-        if (utxoValueSum >= valueToSpend + fee) {
-          break;
-        }
+        if (hasEnoughFunds()) break;
       }
     }
 
-    if (utxoValueSum < valueToSpend + fee) {
-      utxoToSpend = [];
+    processUtxoList(utxoList);
+
+    if (!hasEnoughFunds()) {
+      utxoToSpend.clear();
+      utxoValueSum = BigInt.zero;
+      fee = BigInt.zero;
+      processUtxoList(utxoList);
     }
 
-    _utxoList.clear();
-    _utxoList.addAll(utxoToSpend);
+    if (!hasEnoughFunds()) utxoToSpend.clear();
+
+    utxoList = List.from(utxoToSpend);
   }
 
-  BigInt get totalUtxoValue => _utxoList.fold(BigInt.zero, (sum, utxo) {
-        return sum + BigInt.from(utxo.value);
-      });
+  BigInt get totalUtxoValue =>
+      utxoList.fold(BigInt.zero, (sum, utxo) => sum + BigInt.from(utxo.value));
 
-  int get _utxoCount => _utxoList.length;
+  int get _utxoCount => utxoList.length;
 
-  bool get isEmpty => _utxoList.isEmpty;
+  bool get isEmpty => utxoList.isEmpty;
 
   List<Input> generateInputs(ECPublicKey publicKey) {
-    List<Input> inputs = [];
-    for (Utxo utxo in _utxoList) {
-      var outPoint = _createOutPoint(utxo.txid, utxo.vout);
-      var input = _createP2WPKHInput(outPoint, publicKey);
-      inputs.add(input);
-    }
-    return inputs;
+    return utxoList.map((utxo) {
+      final outPoint = _createOutPoint(utxo.txid, utxo.vout);
+      return _createP2WPKHInput(outPoint, publicKey);
+    }).toList();
   }
 
   List<Output> generateOutputs(
@@ -92,20 +78,19 @@ class UtxoHelper {
     int feeRate,
   ) {
     List<Output> outputs = [];
-    BigInt minFee = BigInt.zero;
+    BigInt minFee = BigInt.from(feeRate *
+        _calculateVirtualSize(_utxoCount, [
+          destination.program.runtimeType.toString(),
+          sender.program.runtimeType.toString()
+        ]));
     BigInt utxoValue = totalUtxoValue;
     if (utxoValue > amountToSend) {
-      minFee = BigInt.from(feeRate *
-          _calculateVirtualSize(_utxoCount, [
-            destination.program.runtimeType.toString(),
-            sender.program.runtimeType.toString()
-          ]));
-      var change = utxoValue - amountToSend - minFee;
+      final change = utxoValue - amountToSend - minFee;
       if (change > BigInt.zero) {
-        var changeOutput = _createOutput(change, sender);
+        final changeOutput = _createOutput(change, sender);
         outputs.add(changeOutput);
       }
-      var output = _createOutput(amountToSend, destination);
+      final output = _createOutput(amountToSend, destination);
       outputs.add(output);
     }
     return outputs;
