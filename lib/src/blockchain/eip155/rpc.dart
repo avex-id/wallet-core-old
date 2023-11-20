@@ -1,10 +1,10 @@
-import 'dart:typed_data';
 import 'package:eip1559/eip1559.dart';
 import 'package:http/http.dart';
 import 'package:wallet_core/src/model/rpc.dart';
+import 'package:web3dart/crypto.dart';
 import 'package:web3dart/web3dart.dart';
 
-class Eip155Rpc extends RpcWrapper {
+class Eip155Rpc implements RpcWrapper {
   final Web3Client client;
 
   Eip155Rpc(this.client);
@@ -35,15 +35,11 @@ class Eip155Rpc extends RpcWrapper {
           function: contract.function(functionName),
           params: args);
 
-  Future<String> sendRawTransaction(Uint8List transaction) async =>
-      client.sendRawTransaction(transaction);
-}
+  @override
+  Future<String> broadcastTransaction({required String transactionHex}) async =>
+      client.sendRawTransaction(hexToBytes(transactionHex));
 
-class Erc20Eip155RpcHelper extends Eip155Rpc {
-  final DeployedContract contract;
-  Erc20Eip155RpcHelper(Web3Client client, this.contract) : super(client);
-
-  Future<BigInt> getAllowance(
+  Future<BigInt> getErc20Allowance(DeployedContract contract,
       EthereumAddress owner, EthereumAddress spender) async {
     return client.call(
         contract: contract,
@@ -51,48 +47,42 @@ class Erc20Eip155RpcHelper extends Eip155Rpc {
         params: [owner, spender]).then((value) => value.first);
   }
 
-  Future<BigInt> getTokenBalance(
+  Future<BigInt> getErc20TokenBalance(
+    DeployedContract contract,
     EthereumAddress owner,
   ) {
     return _readContract(contract, 'balanceOf', [owner])
         .then((value) => value.first);
   }
-}
 
-class Erc721Eip155RpcHelper extends Eip155Rpc {
-  final DeployedContract contract;
-  Erc721Eip155RpcHelper(Web3Client client, this.contract) : super(client);
-
-  Future<List<EthereumAddress>> getApproval(
-      EthereumAddress owner, BigInt tokenId) async {
+  Future<List<EthereumAddress>> getErc721Approval(
+      DeployedContract contract, EthereumAddress owner, BigInt tokenId) async {
     return _readContract(contract, 'getApprove', [tokenId])
         .then((value) => value.map((e) => EthereumAddress(e)).toList());
   }
 
-  Future<BigInt> getTokenBalance(
+  Future<BigInt> getErc721TokenBalance(
+    DeployedContract contract,
     EthereumAddress owner,
   ) {
     return _readContract(contract, 'balanceOf', [owner])
         .then((value) => value.first);
   }
 
-  Future<EthereumAddress> getOwnerOf(BigInt tokenId) async {
+  Future<EthereumAddress> getErc721OwnerOf(
+      DeployedContract contract, BigInt tokenId) async {
     return _readContract(contract, 'ownerOf', [tokenId])
         .then((value) => EthereumAddress(value.first));
   }
 
-  Future<bool> isApprovedForAll(
+  Future<bool> isErc721ApprovedForAll(DeployedContract contract,
       EthereumAddress owner, EthereumAddress operator) {
     return _readContract(contract, 'isApprovedForAll', [owner, operator])
         .then((value) => value.first);
   }
-}
 
-class Erc1155Eip155RpcHelper extends Eip155Rpc {
-  final DeployedContract contract;
-  Erc1155Eip155RpcHelper(Web3Client client, this.contract) : super(client);
-
-  Future<BigInt> getTokenBalance(
+  Future<BigInt> getErc1155TokenBalance(
+    DeployedContract contract,
     EthereumAddress owner,
     BigInt tokenId,
   ) {
@@ -100,7 +90,8 @@ class Erc1155Eip155RpcHelper extends Eip155Rpc {
         .then((value) => value.first);
   }
 
-  Future<List<BigInt>> getTokenBalances(
+  Future<List<BigInt>> getErc1155TokenBalances(
+    DeployedContract contract,
     EthereumAddress owner,
     List<BigInt> tokenIds,
   ) {
@@ -108,7 +99,7 @@ class Erc1155Eip155RpcHelper extends Eip155Rpc {
         .then((value) => value.map((e) => e as BigInt).toList());
   }
 
-  Future<bool> isApprovedForAll(
+  Future<bool> isErc1155ApprovedForAll(DeployedContract contract,
       EthereumAddress owner, EthereumAddress operator) {
     return _readContract(
       contract,

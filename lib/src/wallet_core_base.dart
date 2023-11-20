@@ -1,2 +1,10 @@
 export 'domain/mnemonic/mnemonic.dart';
 export 'domain/shamir_secret/shamir_secret.dart';
+export 'domain/caip/blockchain_id/blockchain_id.dart';
+export 'domain/caip/blockchain_id/blockchain_reference/bip122_reference.dart';
+export 'domain/caip/blockchain_id/blockchain_reference/eip155_reference.dart';
+export 'domain/caip/blockchain_id/blockchain_reference/solana_reference.dart';
+export 'domain/caip/account_id/account_id.dart';
+export 'domain/caip/asset_id/asset_id.dart';
+export 'domain/bip_44/bip_44.dart';
+export 'model/keypair.dart';

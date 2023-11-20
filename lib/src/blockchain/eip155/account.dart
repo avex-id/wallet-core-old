@@ -10,15 +10,18 @@ import '../../domain/caip/blockchain_id/blockchain_id.dart';
 
 import 'dart:typed_data';
 
-class Eip155KeyPair implements KeyPair<EthereumAddress, ExtendedKey> {
+class Eip155KeyPair
+    implements KeyPair<Eip155BlockchainId, EthereumAddress, ExtendedKey> {
+  final Eip155BlockchainId blockchainId;
   final EthereumAddress publicKey;
   final ExtendedKey privateKey;
 
-  Eip155KeyPair(this.publicKey, this.privateKey);
+  Eip155KeyPair(this.blockchainId, this.publicKey, this.privateKey);
 
-  String signPersonalMessage(String message) {
+  @override
+  Future<String> signData(String message) async {
     return EthSigUtil.signPersonalMessage(
-      message: hexToBytes(message),
+      message: hexToBytes(HEX.encode(message.codeUnits)),
       privateKey: privateKey.privateKeyHex(),
     );
   }
@@ -43,13 +46,15 @@ class Eip155KeyPairFactory
 
   @override
   Eip155KeyPair fromPrivateKey(ExtendedKey privateKey) {
-    return Eip155KeyPair(
+    return Eip155KeyPair(blockchainId,
         _eip155AccountFromPrivateKey(privateKey).address, privateKey);
   }
 
   @override
   Eip155KeyPair fromPrivateKeyString(String privateKey) {
-    return Eip155KeyPair(_eip155AccountFromPrivateKeyHex(privateKey).address,
+    return Eip155KeyPair(
+        blockchainId,
+        _eip155AccountFromPrivateKeyHex(privateKey).address,
         ExtendedKey.deserialize(privateKey));
   }
 
@@ -59,7 +64,7 @@ class Eip155KeyPairFactory
         _eip155PrivateKeyFromSeed(seed, blockchainId, index);
     EthereumAddress accountAddress =
         _eip155AccountFromPrivateKey(secretKey).address;
-    return Eip155KeyPair(accountAddress, secretKey);
+    return Eip155KeyPair(blockchainId, accountAddress, secretKey);
   }
 
   static ExtendedKey _eip155PrivateKeyFromSeed(

@@ -1,7 +1,7 @@
 import '../../api/mempool/api.dart';
 import '../../model/rpc.dart';
 
-class Bip122Rpc extends RpcWrapper {
+class Bip122Rpc implements RpcWrapper {
   Future<List<int>> getFeeRates() async {
     RecommendedFees feeRate = await fetchRecommendedFees();
     return [
@@ -12,7 +12,12 @@ class Bip122Rpc extends RpcWrapper {
     ];
   }
 
-  Future<String> broadcastTransaction(String transactionHex) async {
+  Future<List<Utxo>> getUtxoList(String address) async {
+    return await fetchUtxoList(address);
+  }
+
+  @override
+  Future<String> broadcastTransaction({required String transactionHex}) async {
     return (await postTransactionHex(transactionHex)).txid;
   }
 }

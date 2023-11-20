@@ -1,49 +1,54 @@
-// import 'package:eip1559/eip1559.dart';
-// import 'package:wallet_core/src/blockchain/eip155/account.dart';
-// import 'package:wallet_core/src/blockchain/eip155/rpc.dart';
-// import 'package:wallet_core/src/blockchain/eip155/transaction.dart';
-// import 'package:wallet_core/src/domain/caip/account_id/account_address.dart';
-// import 'package:wallet_core/src/domain/caip/blockchain_id/namespace.dart';
-// import 'package:wallet_core/wallet_core.dart';
-// import 'package:web3dart/credentials.dart';
+import 'package:wallet_core/src/blockchain/eip155/transaction.dart';
 
-import 'dart:typed_data';
+import '../blockchain/bip122/transaction.dart';
+import '../blockchain/solana/transaction.dart';
+import '../domain/caip/account_id/account_id.dart';
+import '../domain/caip/asset_id/asset_type.dart';
+import '../domain/caip/asset_id/asset_id.dart';
+import '../model/rpc.dart';
+import 'keypair.dart';
 
-import 'package:wallet_core/src/model/keypair.dart';
-import 'package:wallet_core/wallet_core.dart';
-
-abstract class TransactionWrapper {
-
-  // Uint8List signRawTransaction(KeyPair keyPair);
-
-  // KeyPair keyPair;
-  // BlockchainAccountId to;
-  // BlockchainAssetId assetId;
-
-  // TransactionWrapper(this.keyPair, this.to, this.assetId);
+abstract class TransactionWrapper<T, U extends KeyPair,
+    V extends BlockchainAccountId, W extends BlockchainAssetType> {
+  T get innerRawTransaction;
+  U get keyPair;
+  V get from;
+  V get to;
+  W get assetType;
 }
 
-// mixin TransactionMixin {
-//   static Future<Transaction> nativeTransfer(KeyPair from,
-//       BlockchainAccountId to, BlockchainAssetId assetId, BigInt value) async {
-//     switch (assetId.assetType.blockchainId.namespace) {
-//       case BlockchainNamespace.eip155:
-//         {
-//           Eip155KeyPair source = from as Eip155KeyPair;
-//           Eip155AccountAddress destination =
-//               to.accountAddress as Eip155AccountAddress;
-//           var tx = Eip155Transaction.transfer(source.address, destination.value,
-//               value, null, null, null, null, null);
-//           var rpc = Eip155Rpc.fromUrl("https://mainnet.infura.io/v3/");
-//           var maxGas = await rpc.estimateFee(tx.transaction);
-//           List<Fee> gasFee = await rpc.getFee();
-//           BigInt maxFeePerGas = gasFee[1].maxFeePerGas;
-//           BigInt maxPriorityFeePerGas = gasFee[1].maxPriorityFeePerGas;
-//           var nonce = await rpc.getNonce(source.address);
-//         }
+abstract class TransactionWrapperFactory<
+    T,
+    U extends KeyPair,
+    V extends BlockchainAccountId,
+    W extends BlockchainAssetType,
+    X extends BlockchainAssetId,
+    Y extends RpcWrapper> {
+  final X assetId;
 
-//       default:
-//         throw ArgumentError('Asset $assetId is not supported');
-//     }
-//   }
-// }
+  TransactionWrapperFactory(this.assetId);
+
+  Future<TransactionWrapper<T, U, V, W>> createTransaction(
+    Y rpc,
+    U keyPair,
+    V from,
+    V to,
+    int amount,
+    int decimals,
+    int transactionSpeed,
+  );
+}
+
+class TransactionWrapperFactoryProducer {
+  static TransactionWrapperFactory getFactory(BlockchainAssetId assetId) {
+    if (assetId is Eip155BlockchainAssetId) {
+      return Eip155TransactionWrapperFactoryProducer.getFactory(assetId);
+    } else if (assetId is Bip122BlockchainAssetId) {
+      return Bip122TransactionWrapperFactoryProducer.getFactory(assetId);
+    } else if (assetId is SolanaBlockchainAssetId) {
+      return SolanaTransactionWrapperFactoryProducer.getFactory(assetId);
+    } else {
+      throw Exception("Unsupported asset namespace");
+    }
+  }
+}

@@ -4,9 +4,10 @@ import '../blockchain/eip155/account.dart';
 import '../blockchain/solana/account.dart';
 import '../domain/caip/blockchain_id/blockchain_id.dart';
 
-abstract class KeyPair<U, V> {
+abstract class KeyPair<T extends BlockchainId, U, V> {
   String get public;
   String get private;
+  Future<String> signData(String message);
 }
 
 abstract class KeyPairFactory<T extends BlockchainId, U, V> {
@@ -14,9 +15,9 @@ abstract class KeyPairFactory<T extends BlockchainId, U, V> {
 
   KeyPairFactory(this.blockchainId);
 
-  KeyPair<U, V> fromPrivateKey(V privateKey);
-  KeyPair<U, V> fromPrivateKeyString(String privateKey);
-  Future<KeyPair<U, V>> fromSeed(Uint8List seed, int index);
+  KeyPair<T, U, V> fromPrivateKey(V privateKey);
+  KeyPair<T, U, V> fromPrivateKeyString(String privateKey);
+  Future<KeyPair<T, U, V>> fromSeed(Uint8List seed, int index);
 }
 
 class KeyPairFactoryProducer {

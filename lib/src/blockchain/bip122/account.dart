@@ -6,19 +6,20 @@ import 'package:wallet_core/src/model/keypair.dart';
 import '../../domain/bip_44/bip_44.dart';
 import '../../domain/caip/blockchain_id/blockchain_id.dart';
 
-class Bip122KeyPair implements KeyPair<Address, WIF> {
+class Bip122KeyPair implements KeyPair<Bip122BlockchainId, Address, WIF> {
+  final Bip122BlockchainId blockchainId;
   final P2WPKHAddress publicKey;
   final WIF privateKey;
 
-  Bip122KeyPair(this.publicKey, this.privateKey);
+  Bip122KeyPair(this.blockchainId, this.publicKey, this.privateKey);
 
-  MessageSignature bip122SignData(String message) {
-    return MessageSignature.sign(
-      key: privateKey.privkey,
-      message: message,
-      // Todo: Add Dynamic prefix
-      prefix: "Bitcoin Signed Message:\n",
-    );
+  @override
+  Future<String> signData(String message) async {
+    final MessageSignature signedData = MessageSignature.sign(
+        key: privateKey.privkey,
+        message: message,
+        prefix: blockchainId.reference.networkParams.messagePrefix);
+    return signedData.toString();
   }
 
   @override
@@ -34,6 +35,7 @@ class Bip122KeyPairFactory
   @override
   Bip122KeyPair fromPrivateKey(WIF privateKey) {
     return Bip122KeyPair(
+        blockchainId,
         _bip122AccountFromPrivateKey(
             privateKey, blockchainId.reference.networkParams.bech32Hrp),
         privateKey);
@@ -45,7 +47,7 @@ class Bip122KeyPairFactory
         privateKey, blockchainId.reference.networkParams.wifPrefix);
     P2WPKHAddress publicKey = _bip122AccountFromPrivateKey(
         key, blockchainId.reference.networkParams.bech32Hrp);
-    return Bip122KeyPair(publicKey, key);
+    return Bip122KeyPair(blockchainId, publicKey, key);
   }
 
   @override
@@ -54,7 +56,7 @@ class Bip122KeyPairFactory
         blockchainId.reference.networkParams.wifPrefix);
     P2WPKHAddress publicKey = _bip122AccountFromPrivateKey(
         privateKey, blockchainId.reference.networkParams.bech32Hrp);
-    return Bip122KeyPair(publicKey, privateKey);
+    return Bip122KeyPair(blockchainId, publicKey, privateKey);
   }
 
   static P2WPKHAddress _bip122AccountFromPrivateKey(WIF wif, String hrp) {
