@@ -6,15 +6,20 @@ import '../../domain/bip_44/bip_44.dart';
 import '../../domain/caip/blockchain_id/blockchain_id.dart';
 import '../../model/keypair.dart';
 
-class SolanaKeyPair implements KeyPair<Ed25519HDPublicKey, List<int>> {
+class SolanaKeyPair
+    implements KeyPair<SolanaBlockchainId, Ed25519HDPublicKey, List<int>> {
+  final SolanaBlockchainId blockchainId;
   final Ed25519HDPublicKey publicKey;
   final List<int> privateKey;
 
-  SolanaKeyPair(this.publicKey, this.privateKey);
+  SolanaKeyPair(this.blockchainId, this.publicKey, this.privateKey);
 
-  Future<Signature> signPersonalMessage(
-      String message, Ed25519HDKeyPair signer) async {
-    return await signer.sign(message.codeUnits);
+  @override
+  Future<String> signData(String message) async {
+    final signer = await Ed25519HDKeyPair.fromPrivateKeyBytes(
+        privateKey: privateKey.sublist(0, 32));
+    final Signature signedData = await signer.sign(message.codeUnits);
+    return signedData.toBase58();
   }
 
   @override
@@ -32,7 +37,7 @@ class SolanaKeyPairFactory
   SolanaKeyPair fromPrivateKey(List<int> privateKey) {
     Ed25519HDPublicKey address =
         Ed25519HDPublicKey.fromBase58(base58encode(privateKey.sublist(32)));
-    return SolanaKeyPair(address, privateKey);
+    return SolanaKeyPair(blockchainId, address, privateKey);
   }
 
   @override
@@ -40,7 +45,7 @@ class SolanaKeyPairFactory
     List<int> secretKey = base58decode(privateKey);
     Ed25519HDPublicKey address =
         Ed25519HDPublicKey.fromBase58(base58encode(secretKey.sublist(32)));
-    return SolanaKeyPair(address, secretKey);
+    return SolanaKeyPair(blockchainId, address, secretKey);
   }
 
   @override
@@ -49,7 +54,7 @@ class SolanaKeyPairFactory
         await _solanaPrivateKeyFromSeed(seed, blockchainId, index);
     Ed25519HDPublicKey address =
         (await _solanaAccountFromPrivateKey(secretKey)).publicKey;
-    return SolanaKeyPair(address, secretKey);
+    return SolanaKeyPair(blockchainId, address, secretKey);
   }
 
   static Future<Ed25519HDKeyPair> _solanaAccountFromPrivateKey(List<int> key) {
