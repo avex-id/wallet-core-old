@@ -6,8 +6,11 @@ import 'namespace.dart';
 
 abstract class BlockchainId<T extends BlockchainReference> {
   static const String _INVALID_BLOCKCHAIN_ID = 'Invalid Blockchain Id';
+
   BlockchainNamespace get namespace;
+
   T get reference;
+
   static BlockchainId parse(String blockchainId) {
     final parts = blockchainId.split(':');
     if (parts.length != 2) throw Exception(_INVALID_BLOCKCHAIN_ID);
@@ -66,21 +69,24 @@ abstract class BlockchainIdFactory<T extends BlockchainReference> {
   BlockchainId<T> fromString(String reference);
 }
 
-class SolanaBlockchainIdFactory extends BlockchainIdFactory<SolanaReference> {
+class SolanaBlockchainIdFactory
+    implements BlockchainIdFactory<SolanaReference> {
   @override
   SolanaBlockchainId fromString(String reference) {
     return SolanaBlockchainId(SolanaReference.fromString(reference));
   }
 }
 
-class Eip155BlockchainIdFactory extends BlockchainIdFactory<Eip155Reference> {
+class Eip155BlockchainIdFactory
+    implements BlockchainIdFactory<Eip155Reference> {
   @override
   Eip155BlockchainId fromString(String reference) {
     return Eip155BlockchainId(Eip155Reference.fromString(reference));
   }
 }
 
-class Bip122BlockchainIdFactory extends BlockchainIdFactory<Bip122Reference> {
+class Bip122BlockchainIdFactory
+    implements BlockchainIdFactory<Bip122Reference> {
   @override
   Bip122BlockchainId fromString(String reference) {
     return Bip122BlockchainId(Bip122Reference.fromString(reference));
