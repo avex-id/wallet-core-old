@@ -7,7 +7,10 @@ enum Bip122Reference implements BlockchainReference {
 
   const Bip122Reference(this.value, this.name);
 
+  @override
   final String value;
+
+  @override
   final String name;
 
   @override

@@ -7,10 +7,10 @@ class Mnemonic {
   static const String _INVALID_MNEMONIC = 'Invalid mnemonic phrase';
   static const String _INVALID_STRENGTH = 'Invalid strength';
 
-  final String mnemonic;
+  final String _mnemonic;
 
-  Mnemonic(this.mnemonic) {
-    if (!validateMnemonic(mnemonic)) {
+  Mnemonic(this._mnemonic) {
+    if (!validateMnemonic(_mnemonic)) {
       throw ArgumentError(_INVALID_MNEMONIC);
     }
   }
@@ -22,11 +22,11 @@ class Mnemonic {
     return Mnemonic(generateMnemonic(strength: strength));
   }
 
-  String get toSeedHex => mnemonicToSeedHex(mnemonic);
-  Uint8List get toSeed => mnemonicToSeed(mnemonic);
+  String get toSeedHex => mnemonicToSeedHex(_mnemonic);
+  Uint8List get toSeed => mnemonicToSeed(_mnemonic);
 
   @override
   String toString() {
-    return mnemonic;
+    return _mnemonic;
   }
 }

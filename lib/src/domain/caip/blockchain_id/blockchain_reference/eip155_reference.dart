@@ -9,7 +9,10 @@ enum Eip155Reference implements BlockchainReference {
 
   const Eip155Reference(this.value, this.name);
 
+  @override
   final String value;
+
+  @override
   final String name;
 
   @override

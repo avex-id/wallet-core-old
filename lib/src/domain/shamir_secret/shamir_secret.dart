@@ -5,7 +5,9 @@ class ShamirSecretManager {
   static const String _NOT_ENOUGH_SHARES = 'Not enough shares';
   static const String _NEGATIVE_VALUE = 'Minimum and shares cannot be negative';
   static const String _INVALID_MINIMUM = 'Minimum must be <= shares';
+
   final int minimum;
+  
   final int shares;
 
   ShamirSecretManager({this.minimum = 2, this.shares = 3}) {

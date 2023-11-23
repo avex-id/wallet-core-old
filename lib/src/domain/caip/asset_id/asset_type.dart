@@ -1,20 +1,26 @@
 import 'package:coinlib/coinlib.dart';
 import 'package:solana/solana.dart';
-import 'package:wallet_core/wallet_core.dart';
 import 'package:web3dart/web3dart.dart';
 
-import '../blockchain_id/blockchain_id.dart';
 import 'asset_namespace.dart';
 import 'asset_namespace/bip122_asset_namespace.dart';
 import 'asset_namespace/eip155_asset_namespace.dart';
 import 'asset_namespace/solana_asset_namespace.dart';
+import '../blockchain_id/blockchain_reference/bip122_reference.dart';
+import '../blockchain_id/blockchain_reference/eip155_reference.dart';
+import '../blockchain_id/blockchain_reference/solana_reference.dart';
+import '../blockchain_id/blockchain_id.dart';
+import '../blockchain_id/reference.dart';
 
 abstract class BlockchainAssetType<T extends BlockchainId,
     U extends BlockchainAssetNamespace, V> {
   static const String _INVALID_BLOCKCHAIN_ASSET_TYPE =
       'Invalid Blockchain Asset Type';
+
   T get blockchainId;
+
   U get assetNamespace;
+
   V get assetReference;
 
   static BlockchainAssetType parse(String assetType) {
@@ -26,7 +32,7 @@ abstract class BlockchainAssetType<T extends BlockchainId,
     }
     final blockchainId = BlockchainId.parse(parts[0]);
     return BlockchainAssetTypeFactoryProducer.getFactory(
-            blockchainId, assetTypeParts[0])
+            blockchainId.reference, assetTypeParts[0])
         .fromString(assetTypeParts[1]);
   }
 }
@@ -35,8 +41,10 @@ class Eip155BlockchainAssetType
     implements
         BlockchainAssetType<Eip155BlockchainId, Eip155AssetNamespace,
             EthereumAddress> {
+  final Eip155Reference reference;
+
   @override
-  final Eip155BlockchainId blockchainId;
+  Eip155BlockchainId get blockchainId => Eip155BlockchainId(reference);
 
   @override
   final Eip155AssetNamespace assetNamespace;
@@ -45,7 +53,7 @@ class Eip155BlockchainAssetType
   final EthereumAddress assetReference;
 
   Eip155BlockchainAssetType(
-      this.blockchainId, this.assetNamespace, this.assetReference);
+      this.reference, this.assetNamespace, this.assetReference);
 
   @override
   String toString() {
@@ -57,8 +65,10 @@ class SolanaBlockchainAssetType
     implements
         BlockchainAssetType<SolanaBlockchainId, SolanaAssetNamespace,
             Ed25519HDPublicKey> {
+  final SolanaReference reference;
+
   @override
-  final SolanaBlockchainId blockchainId;
+  SolanaBlockchainId get blockchainId => SolanaBlockchainId(reference);
 
   @override
   final SolanaAssetNamespace assetNamespace;
@@ -67,7 +77,7 @@ class SolanaBlockchainAssetType
   final Ed25519HDPublicKey assetReference;
 
   SolanaBlockchainAssetType(
-      this.blockchainId, this.assetNamespace, this.assetReference);
+      this.reference, this.assetNamespace, this.assetReference);
 
   @override
   String toString() {
@@ -78,8 +88,10 @@ class SolanaBlockchainAssetType
 class Bip122BlockchainAssetType
     implements
         BlockchainAssetType<Bip122BlockchainId, Bip122AssetNamespace, Address> {
+  final Bip122Reference reference;
+
   @override
-  final Bip122BlockchainId blockchainId;
+  Bip122BlockchainId get blockchainId => Bip122BlockchainId(reference);
 
   @override
   final Bip122AssetNamespace assetNamespace;
@@ -88,7 +100,7 @@ class Bip122BlockchainAssetType
   final Address assetReference;
 
   Bip122BlockchainAssetType(
-      this.blockchainId, this.assetNamespace, this.assetReference);
+      this.reference, this.assetNamespace, this.assetReference);
 
   @override
   String toString() {
@@ -98,50 +110,73 @@ class Bip122BlockchainAssetType
 
 abstract class BlockchainAssetTypeFactory<T extends BlockchainId,
     U extends BlockchainAssetNamespace, V> {
-  final T blockchainId;
-  final U assetNamespace;
+  T get blockchainId;
 
-  BlockchainAssetTypeFactory(this.blockchainId, this.assetNamespace);
+  U get assetNamespace;
 
   BlockchainAssetType<T, U, V> fromString(String assetReference);
 }
 
-class Eip155BlockchainAssetTypeFactory extends BlockchainAssetTypeFactory<
-    Eip155BlockchainId, Eip155AssetNamespace, EthereumAddress> {
-  Eip155BlockchainAssetTypeFactory(
-      Eip155BlockchainId blockchainId, Eip155AssetNamespace assetNamespace)
-      : super(blockchainId, assetNamespace);
+class Eip155BlockchainAssetTypeFactory
+    implements
+        BlockchainAssetTypeFactory<Eip155BlockchainId, Eip155AssetNamespace,
+            EthereumAddress> {
+  final Eip155Reference reference;
+
+  @override
+  final Eip155AssetNamespace assetNamespace;
+
+  @override
+  Eip155BlockchainId get blockchainId => Eip155BlockchainId(reference);
+
+  Eip155BlockchainAssetTypeFactory(this.reference, this.assetNamespace);
 
   @override
   Eip155BlockchainAssetType fromString(String assetReference) {
-    return Eip155BlockchainAssetType(
-        blockchainId, assetNamespace, EthereumAddress.fromHex(assetReference));
+    return Eip155BlockchainAssetType(blockchainId.reference, assetNamespace,
+        EthereumAddress.fromHex(assetReference));
   }
 }
 
-class SolanaBlockchainAssetTypeFactory extends BlockchainAssetTypeFactory<
-    SolanaBlockchainId, SolanaAssetNamespace, Ed25519HDPublicKey> {
-  SolanaBlockchainAssetTypeFactory(
-      SolanaBlockchainId blockchainId, SolanaAssetNamespace assetNamespace)
-      : super(blockchainId, assetNamespace);
+class SolanaBlockchainAssetTypeFactory
+    implements
+        BlockchainAssetTypeFactory<SolanaBlockchainId, SolanaAssetNamespace,
+            Ed25519HDPublicKey> {
+  final SolanaReference reference;
+
+  @override
+  final SolanaAssetNamespace assetNamespace;
+
+  @override
+  SolanaBlockchainId get blockchainId => SolanaBlockchainId(reference);
+
+  SolanaBlockchainAssetTypeFactory(this.reference, this.assetNamespace);
 
   @override
   SolanaBlockchainAssetType fromString(String assetReference) {
-    return SolanaBlockchainAssetType(blockchainId, assetNamespace,
+    return SolanaBlockchainAssetType(blockchainId.reference, assetNamespace,
         Ed25519HDPublicKey.fromBase58(assetReference));
   }
 }
 
-class Bip122BlockchainAssetTypeFactory extends BlockchainAssetTypeFactory<
-    Bip122BlockchainId, Bip122AssetNamespace, Address> {
-  Bip122BlockchainAssetTypeFactory(
-      Bip122BlockchainId blockchainId, Bip122AssetNamespace assetNamespace)
-      : super(blockchainId, assetNamespace);
+class Bip122BlockchainAssetTypeFactory
+    implements
+        BlockchainAssetTypeFactory<Bip122BlockchainId, Bip122AssetNamespace,
+            Address> {
+  final Bip122Reference reference;
+
+  @override
+  final Bip122AssetNamespace assetNamespace;
+
+  @override
+  Bip122BlockchainId get blockchainId => Bip122BlockchainId(reference);
+
+  Bip122BlockchainAssetTypeFactory(this.reference, this.assetNamespace);
 
   @override
   Bip122BlockchainAssetType fromString(String assetReference) {
     return Bip122BlockchainAssetType(
-        blockchainId,
+        blockchainId.reference,
         assetNamespace,
         Address.fromString(
             assetReference, blockchainId.reference.networkParams));
@@ -150,18 +185,18 @@ class Bip122BlockchainAssetTypeFactory extends BlockchainAssetTypeFactory<
 
 class BlockchainAssetTypeFactoryProducer {
   static BlockchainAssetTypeFactory getFactory(
-      BlockchainId blockchainId, String assetNamespace) {
-    if (blockchainId is Eip155BlockchainId) {
+      BlockchainReference reference, String assetNamespace) {
+    if (reference is Eip155Reference) {
       return Eip155BlockchainAssetTypeFactory(
-          blockchainId, Eip155AssetNamespace.fromString(assetNamespace));
-    } else if (blockchainId is SolanaBlockchainId) {
+          reference, Eip155AssetNamespace.fromString(assetNamespace));
+    } else if (reference is SolanaReference) {
       return SolanaBlockchainAssetTypeFactory(
-          blockchainId, SolanaAssetNamespace.fromString(assetNamespace));
-    } else if (blockchainId is Bip122BlockchainId) {
+          reference, SolanaAssetNamespace.fromString(assetNamespace));
+    } else if (reference is Bip122Reference) {
       return Bip122BlockchainAssetTypeFactory(
-          blockchainId, Bip122AssetNamespace.fromString(assetNamespace));
+          reference, Bip122AssetNamespace.fromString(assetNamespace));
     } else {
-      throw Exception('Invalid Blockchain Asset Type');
+      throw Exception(BlockchainAssetType._INVALID_BLOCKCHAIN_ASSET_TYPE);
     }
   }
 }

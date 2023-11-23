@@ -7,7 +7,10 @@ enum SolanaReference implements BlockchainReference {
 
   const SolanaReference(this.value, this.name);
 
+  @override
   final String value;
+
+  @override
   final String name;
 
   @override
