@@ -13,6 +13,7 @@ import '../../../types/common/keypair/keypair.dart';
 
 class Eip155KeyPair
     implements KeyPair<Eip155BlockchainId, EthereumAddress, ExtendedKey> {
+  @override
   final Eip155BlockchainId blockchainId;
 
   @override

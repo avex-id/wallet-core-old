@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import '../caip/blockchain_id/blockchain_id.dart';
 
 abstract class KeyPair<T extends BlockchainId, U, V> {
+  T get blockchainId;
   U get publicKey;
   V get privateKey;
   String get public;

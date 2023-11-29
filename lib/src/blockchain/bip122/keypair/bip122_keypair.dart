@@ -6,6 +6,7 @@ import '../bip122_blockchain_id/bip122_blockchain_reference.dart';
 import '../bip44/bip44.dart';
 
 class Bip122KeyPair implements KeyPair<Bip122BlockchainId, Address, WIF> {
+  @override
   final Bip122BlockchainId blockchainId;
 
   @override
