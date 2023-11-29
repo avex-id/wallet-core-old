@@ -45,7 +45,22 @@ export 'blockchain/bip122/bip122_asset_id/bip122_asset_id.dart';
 export 'blockchain/bip122/bip122_asset_id/bip122_asset_type.dart';
 export 'blockchain/bip122/bip122_asset_id/bip122_asset_namespace.dart';
 
-// export 'types/common/mnemonic/mnemonic.dart';
-// export 'types/common/shamir_secret/shamir_secret.dart';
-// export 'types/common/bip_44/bip_44.dart';
+// Mnemonic
+export 'types/common/mnemonic/mnemonic.dart';
+
+// Shamir Secret
+export 'types/common/shamir_secret/shamir_secret.dart';
+
+// Derivation Path
+export 'producers/bip44/bip44_factory_producer.dart';
+
+export 'types/common/bip_44/bip_44.dart';
+
+export 'blockchain/solana/bip44/bip44.dart';
+
+export 'blockchain/eip155/bip44/bip44.dart';
+
+export 'blockchain/bip122/bip44/bip44.dart';
+
+// // Keypair
 // export 'types/common/keypair/keypair.dart';

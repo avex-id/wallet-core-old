@@ -15,7 +15,7 @@ class ShamirSecretManager {
     if (minimum > shares) throw ArgumentError(_INVALID_MINIMUM);
   }
 
-  List<String> generate({required secret, bool isBase64 = false}) {
+  List<String> generate({required String secret, bool isBase64 = false}) {
     return _SSS.create(minimum, shares, secret, isBase64);
   }
 
