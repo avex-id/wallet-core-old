@@ -9,6 +9,7 @@ import '../solana_blockchain_id/solana_blockchain_reference.dart';
 
 class SolanaKeyPair
     implements KeyPair<SolanaBlockchainId, Ed25519HDPublicKey, List<int>> {
+  @override
   final SolanaBlockchainId blockchainId;
 
   @override
