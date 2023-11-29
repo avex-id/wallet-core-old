@@ -62,5 +62,12 @@ export 'blockchain/eip155/bip44/bip44.dart';
 
 export 'blockchain/bip122/bip44/bip44.dart';
 
-// // Keypair
-// export 'types/common/keypair/keypair.dart';
+// Keypair
+export 'producers/keypair/keypair_factory_producer.dart';
+export 'types/common/keypair/keypair.dart';
+
+export 'blockchain/solana/keypair/solana_keypair.dart';
+
+export 'blockchain/eip155/keypair/eip155_keypair.dart';
+
+export 'blockchain/bip122/keypair/bip122_keypair.dart';

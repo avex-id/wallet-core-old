@@ -1,17 +1,21 @@
 import 'dart:typed_data';
 import 'package:coinlib/coinlib.dart';
-import 'package:wallet_core/src/domain/caip/blockchain_id/blockchain_reference/bip122_reference.dart';
-import 'package:wallet_core/src/model/keypair.dart';
-
-import '../../domain/bip_44/bip_44.dart';
-import '../../domain/caip/blockchain_id/blockchain_id.dart';
+import '../../../types/common/keypair/keypair.dart';
+import '../bip122_blockchain_id/bip122_blockchain_id.dart';
+import '../bip122_blockchain_id/bip122_blockchain_reference.dart';
+import '../bip44/bip44.dart';
 
 class Bip122KeyPair implements KeyPair<Bip122BlockchainId, Address, WIF> {
   final Bip122BlockchainId blockchainId;
+
+  @override
   final P2WPKHAddress publicKey;
+
+  @override
   final WIF privateKey;
 
-  Bip122KeyPair(this.blockchainId, this.publicKey, this.privateKey);
+  Bip122KeyPair(Bip122Reference reference, this.publicKey, this.privateKey)
+      : blockchainId = Bip122BlockchainId(reference);
 
   @override
   Future<String> signData(String message) async {
@@ -30,12 +34,16 @@ class Bip122KeyPair implements KeyPair<Bip122BlockchainId, Address, WIF> {
 }
 
 class Bip122KeyPairFactory
-    extends KeyPairFactory<Bip122BlockchainId, Address, WIF> {
-  Bip122KeyPairFactory(Bip122BlockchainId blockchainId) : super(blockchainId);
+    implements KeyPairFactory<Bip122BlockchainId, Address, WIF> {
+  final Bip122BlockchainId blockchainId;
+
+  Bip122KeyPairFactory(Bip122Reference reference)
+      : blockchainId = Bip122BlockchainId(reference);
+
   @override
   Bip122KeyPair fromPrivateKey(WIF privateKey) {
     return Bip122KeyPair(
-        blockchainId,
+        blockchainId.reference,
         _bip122AccountFromPrivateKey(
             privateKey, blockchainId.reference.networkParams.bech32Hrp),
         privateKey);
@@ -47,16 +55,16 @@ class Bip122KeyPairFactory
         privateKey, blockchainId.reference.networkParams.wifPrefix);
     P2WPKHAddress publicKey = _bip122AccountFromPrivateKey(
         key, blockchainId.reference.networkParams.bech32Hrp);
-    return Bip122KeyPair(blockchainId, publicKey, key);
+    return Bip122KeyPair(blockchainId.reference, publicKey, key);
   }
 
   @override
   Future<Bip122KeyPair> fromSeed(Uint8List seed, int index) async {
-    WIF privateKey = _bip122PrivateKeyFromSeed(seed, blockchainId, index,
-        blockchainId.reference.networkParams.wifPrefix);
+    WIF privateKey = _bip122PrivateKeyFromSeed(seed, blockchainId.reference,
+        index, blockchainId.reference.networkParams.wifPrefix);
     P2WPKHAddress publicKey = _bip122AccountFromPrivateKey(
         privateKey, blockchainId.reference.networkParams.bech32Hrp);
-    return Bip122KeyPair(blockchainId, publicKey, privateKey);
+    return Bip122KeyPair(blockchainId.reference, publicKey, privateKey);
   }
 
   static P2WPKHAddress _bip122AccountFromPrivateKey(WIF wif, String hrp) {
@@ -71,9 +79,9 @@ class Bip122KeyPairFactory
   }
 
   static WIF _bip122PrivateKeyFromSeed(
-      Uint8List seed, Bip122BlockchainId blockchainId, int index, int version) {
+      Uint8List seed, Bip122Reference reference, int index, int version) {
     HDPrivateKey hdWallet = HDPrivateKey.fromSeed(seed);
-    String path = Bip122DerivationPath(blockchainId, addressIndex: index).path;
+    String path = Bip122DerivationPath(reference, addressIndex: index).path;
     HDPrivateKey key = hdWallet.derivePath(path);
     return WIF(privkey: key.privateKey, version: version);
   }
