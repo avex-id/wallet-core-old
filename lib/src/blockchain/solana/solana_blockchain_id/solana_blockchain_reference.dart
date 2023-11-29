@@ -25,7 +25,7 @@ enum SolanaReference implements BlockchainReference {
       case 'devnet':
         return SolanaReference.solanaDevnet;
       default:
-        throw Exception("Unknown Blockchain Reference: $reference");
+        throw Exception("Unknown blockchain reference: $reference");
     }
   }
 }

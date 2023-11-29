@@ -1,4 +1,4 @@
-import '../asset_namespace.dart';
+import '../../../types/common/caip/asset_id/asset_namespace.dart';
 
 enum SolanaAssetNamespace implements BlockchainAssetNamespace {
   slip44('slip44'),
@@ -18,7 +18,7 @@ enum SolanaAssetNamespace implements BlockchainAssetNamespace {
       case 'spl':
         return SolanaAssetNamespace.spl;
       default:
-        throw Exception("Unknown Asset Namespace: $namespace");
+        throw Exception("Unknown asset namespace: $namespace");
     }
   }
 }

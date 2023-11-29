@@ -1,4 +1,4 @@
-import '../asset_namespace.dart';
+import '../../../types/common/caip/asset_id/asset_namespace.dart';
 
 enum Eip155AssetNamespace implements BlockchainAssetNamespace {
   slip44('slip44'),
@@ -24,7 +24,7 @@ enum Eip155AssetNamespace implements BlockchainAssetNamespace {
       case 'erc1155':
         return Eip155AssetNamespace.erc1155;
       default:
-        throw Exception("Unknown Asset Namespace: $namespace");
+        throw Exception("Unknown asset namespace: $namespace");
     }
   }
 }
