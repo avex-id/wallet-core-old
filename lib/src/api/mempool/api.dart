@@ -1,7 +1,172 @@
 import 'dart:convert';
 import 'package:http/http.dart' as http;
 
-const baseUrl = "https://mempool.space/api";
+// const apiUrl = "https://mempool.space/testnet/api";
+
+class MempoolApiClient {
+  final String apiUrl;
+
+  MempoolApiClient({required this.apiUrl});
+
+  Future<AddressData> fetchAddressData(String address) async {
+    final url = Uri.parse("$apiUrl/address/$address");
+    try {
+      final response = await http.get(url);
+      if (response.statusCode == 200) {
+        final data = AddressData.fromJson(json.decode(response.body));
+        return data;
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<List<TransactionData>> fetchTransactionHistory(String address) async {
+    final url = Uri.parse("$apiUrl/address/$address/txs");
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> transactionList = json.decode(response.body);
+        return transactionList
+            .map((item) => TransactionData.fromJson(item))
+            .toList();
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<List<TransactionData>> fetchConfirmedTransactionHistory(
+      String address) async {
+    final url = Uri.parse("$apiUrl/address/$address/txs/chain");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> transactionList = json.decode(response.body);
+        return transactionList
+            .map((item) => TransactionData.fromJson(item))
+            .toList();
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<List<TransactionData>> fetchUnconfirmedTransactionHistory(
+      String address) async {
+    final url = Uri.parse("$apiUrl/address/$address/txs/mempool");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> transactionList = json.decode(response.body);
+        return transactionList
+            .map((item) => TransactionData.fromJson(item))
+            .toList();
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<List<Utxo>> fetchUtxoList(String address) async {
+    final url = Uri.parse("$apiUrl/address/$address/utxo");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final List<dynamic> utxoList = json.decode(response.body);
+        return utxoList.map((item) => Utxo.fromJson(item)).toList();
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<RecommendedFees> fetchRecommendedFees() async {
+    final url = Uri.parse("$apiUrl/v1/fees/recommended");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return RecommendedFees.fromJson(data);
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<TransactionData> fetchTransactionDetails(String txid) async {
+    final url = Uri.parse("$apiUrl/tx/$txid");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        final Map<String, dynamic> data = json.decode(response.body);
+        return TransactionData.fromJson(data);
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<String> fetchTransactionHex(String txid) async {
+    final url = Uri.parse("$apiUrl/tx/$txid/hex");
+
+    try {
+      final response = await http.get(url);
+
+      if (response.statusCode == 200) {
+        return response.body;
+      } else {
+        throw Exception("Request failed with status: ${response.statusCode}");
+      }
+    } catch (e) {
+      throw Exception("Error: $e");
+    }
+  }
+
+  Future<TransactionBroadcastResponse> postTransactionHex(
+      String rawTransactionHex) async {
+    final url = Uri.parse("$apiUrl/tx");
+    final response = await http.post(
+      url,
+      body: rawTransactionHex,
+      headers: {
+        'Content-Type': 'application/x-www-form-urlencoded',
+      },
+    );
+
+    if (response.statusCode == 200) {
+      final Map<String, dynamic> data = json.decode(response.body);
+      return TransactionBroadcastResponse.fromJson(data);
+    } else {
+      throw Exception("Request failed with status: ${response.statusCode}");
+    }
+  }
+}
 
 class AddressData {
   final String address;
@@ -200,7 +365,6 @@ class Vout {
   }
 }
 
-
 class TransactionStatus {
   final bool confirmed;
   final int? blockHeight;
@@ -307,164 +471,5 @@ class TransactionBroadcastResponse {
     return TransactionBroadcastResponse(
       txid: json['txid'],
     );
-  }
-}
-
-Future<AddressData> fetchAddressData(String address) async {
-  final url = Uri.parse("$baseUrl/address/$address");
-  try {
-    final response = await http.get(url);
-    if (response.statusCode == 200) {
-      final data = AddressData.fromJson(json.decode(response.body));
-      return data;
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<List<TransactionData>> fetchTransactionHistory(String address) async {
-  final url = Uri.parse("$baseUrl/address/$address/txs");
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> transactionList = json.decode(response.body);
-      return transactionList
-          .map((item) => TransactionData.fromJson(item))
-          .toList();
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<List<TransactionData>> fetchConfirmedTransactionHistory(
-    String address) async {
-  final url = Uri.parse("$baseUrl/address/$address/txs/chain");
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> transactionList = json.decode(response.body);
-      return transactionList
-          .map((item) => TransactionData.fromJson(item))
-          .toList();
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<List<TransactionData>> fetchUnconfirmedTransactionHistory(
-    String address) async {
-  final url = Uri.parse("$baseUrl/address/$address/txs/mempool");
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> transactionList = json.decode(response.body);
-      return transactionList
-          .map((item) => TransactionData.fromJson(item))
-          .toList();
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<List<Utxo>> fetchUtxoList(String address) async {
-  final url = Uri.parse("$baseUrl/address/$address/utxo");
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final List<dynamic> utxoList = json.decode(response.body);
-      return utxoList.map((item) => Utxo.fromJson(item)).toList();
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<RecommendedFees> fetchRecommendedFees() async {
-  final url = Uri.parse("$baseUrl/v1/fees/recommended");
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      return RecommendedFees.fromJson(data);
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<TransactionData> fetchTransactionDetails(String txid) async {
-  final url = Uri.parse("$baseUrl/tx/$txid");
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      final Map<String, dynamic> data = json.decode(response.body);
-      return TransactionData.fromJson(data);
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<String> fetchTransactionHex(String txid) async {
-  final url = Uri.parse("$baseUrl/tx/$txid/hex");
-
-  try {
-    final response = await http.get(url);
-
-    if (response.statusCode == 200) {
-      return response.body;
-    } else {
-      throw Exception("Request failed with status: ${response.statusCode}");
-    }
-  } catch (e) {
-    throw Exception("Error: $e");
-  }
-}
-
-Future<TransactionBroadcastResponse> postTransactionHex(
-    String rawTransactionHex) async {
-  final url = Uri.parse("$baseUrl/tx");
-  final response = await http.post(
-    url,
-    body: rawTransactionHex,
-    headers: {
-      'Content-Type': 'application/x-www-form-urlencoded',
-    },
-  );
-
-  if (response.statusCode == 200) {
-    final Map<String, dynamic> data = json.decode(response.body);
-    return TransactionBroadcastResponse.fromJson(data);
-  } else {
-    throw Exception("Request failed with status: ${response.statusCode}");
   }
 }
