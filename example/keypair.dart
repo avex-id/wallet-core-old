@@ -1,15 +1,17 @@
 import 'package:coinlib/coinlib.dart';
 import 'package:wallet_core/wallet_core.dart';
 
-const toBeSignedMessage = "ecb969e2-d688-4cdd-82d7-7f94cb7f6f02";
+const toBeSignedMessage =
+    "ecb969e2-d688-4cdd-82d7-7f94cb7f6f02"; // Nonce for Backend AuthV2/User/User Data/Get Nonce
 const BlockchainReference blockchainReference = Eip155Reference
     .ethereumMainnet; // Or SolanaReference.mainnetBeta, Bip122Reference.mainnet
-const blockchain = "eip155:1";
+const blockchain = "eip155:1"; // CAIP-2 Format https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
 
 Future<void> main() async {
   await loadCoinlib();
   final mnemonic = Mnemonic(
       "daring clay intact recipe fly gaze intact goose energy sun feed talent dry emotion grief slogan menu impose negative rhythm glow quarter undo moment");
+  // Or Generate - Mnemonic().generate(128 for 12 words  Or 256 for 24 words);
   print("Generated mnemonic: $mnemonic\n");
 
   final secretShares = ShamirSecretManager(minimum: 2, shares: 3)
