@@ -1,4 +1,4 @@
-import '../../../types/common/caip/blockchain_id/blockchain_reference.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 
 enum SolanaReference implements BlockchainReference {
   solanaMainnet('mainnet', 'Solana Mainnet'),

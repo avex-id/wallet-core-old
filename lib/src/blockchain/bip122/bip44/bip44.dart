@@ -1,5 +1,5 @@
-import '../../../types/common/caip/blockchain_id/blockchain_namespace.dart';
-import '../../../types/common/bip_44/bip_44.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_namespace.dart';
+import '../../../domain/common/bip_44/bip_44.dart';
 import '../bip122_blockchain_id/bip122_blockchain_id.dart';
 import '../bip122_blockchain_id/bip122_blockchain_reference.dart';
 
@@ -43,13 +43,10 @@ class Bip122DerivationPathFactory
       : blockchainId = Bip122BlockchainId(reference);
 
   @override
-  DerivationPath<Bip122BlockchainId> getAddressAtPath(
-      {int account = 0, int change = 0, required int addressIndex}) {
+  DerivationPath<Bip122BlockchainId> getAddressAtPath({required int index}) {
     return Bip122DerivationPath(
       blockchainId.reference,
-      account: account,
-      change: change,
-      addressIndex: addressIndex,
+      addressIndex: index,
     );
   }
 }

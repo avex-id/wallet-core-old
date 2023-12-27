@@ -1,6 +1,6 @@
 import 'package:coinlib/coinlib.dart';
 
-import '../../../types/common/caip/blockchain_id/blockchain_reference.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 
 enum Bip122Reference implements BlockchainReference {
   bitcoinMainnet('000000000019d6689c085ae165831e93', 'Bitcoin Mainnet'),

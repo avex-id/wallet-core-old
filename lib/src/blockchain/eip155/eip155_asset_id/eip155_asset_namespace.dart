@@ -1,4 +1,4 @@
-import '../../../types/common/caip/asset_id/asset_namespace.dart';
+import '../../../domain/common/caip/blockchain_asset_id/asset_namespace.dart';
 
 enum Eip155AssetNamespace implements BlockchainAssetNamespace {
   slip44('slip44'),

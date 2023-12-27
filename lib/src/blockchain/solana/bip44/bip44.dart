@@ -1,10 +1,10 @@
-import '../../../types/common/caip/blockchain_id/blockchain_namespace.dart';
-import '../../../types/common/bip_44/bip_44.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_namespace.dart';
+import '../../../domain/common/bip_44/bip_44.dart';
 import '../solana_blockchain_id/solana_blockchain_id.dart';
 import '../solana_blockchain_id/solana_blockchain_reference.dart';
 
 class SolanaDerivationPath implements DerivationPath<SolanaBlockchainId> {
-  static const int _ACCOUNT = 0;
+  // static const int _ACCOUNT = 0;
   static const int _CHANGE = 0;
 
   @override
@@ -26,7 +26,7 @@ class SolanaDerivationPath implements DerivationPath<SolanaBlockchainId> {
   int? get addressIndex => null;
 
   SolanaDerivationPath(SolanaReference reference,
-      {this.account = _ACCOUNT, this.change = _CHANGE})
+      {required this.account, this.change = _CHANGE})
       : blockchainId = SolanaBlockchainId(reference);
 
   @override
@@ -41,12 +41,10 @@ class SolanaDerivationPathFactory
       : blockchainId = SolanaBlockchainId(reference);
 
   @override
-  DerivationPath<SolanaBlockchainId> getAddressAtPath(
-      {int account = 0, int change = 0, required int addressIndex}) {
+  DerivationPath<SolanaBlockchainId> getAddressAtPath({required int index}) {
     return SolanaDerivationPath(
       blockchainId.reference,
-      account: addressIndex,
-      change: change,
+      account: index,
     );
   }
 }

@@ -1,6 +1,6 @@
 import 'package:solana/solana.dart';
 
-import '../../../types/common/caip/asset_id/asset_id.dart';
+import '../../../domain/common/caip/blockchain_asset_id/asset_id.dart';
 import '../solana_blockchain_id/solana_blockchain_reference.dart';
 import 'solana_asset_namespace.dart';
 import 'solana_asset_type.dart';

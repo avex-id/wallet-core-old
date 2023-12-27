@@ -1,5 +1,5 @@
-import '../../../types/common/caip/blockchain_id/blockchain_id.dart';
-import '../../../types/common/caip/blockchain_id/blockchain_namespace.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_id.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_namespace.dart';
 import 'eip155_blockchain_reference.dart';
 
 class Eip155BlockchainId implements BlockchainId<Eip155Reference> {

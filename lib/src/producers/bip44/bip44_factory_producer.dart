@@ -4,8 +4,8 @@ import '../../blockchain/eip155/bip44/bip44.dart';
 import '../../blockchain/eip155/eip155_blockchain_id/eip155_blockchain_reference.dart';
 import '../../blockchain/solana/bip44/bip44.dart';
 import '../../blockchain/solana/solana_blockchain_id/solana_blockchain_reference.dart';
-import '../../types/common/bip_44/bip_44.dart';
-import '../../types/common/caip/blockchain_id/blockchain_reference.dart';
+import '../../domain/common/bip_44/bip_44.dart';
+import '../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 
 class DerivationPathFactoryProducer {
   static DerivationPathFactory getFactory(BlockchainReference reference) {

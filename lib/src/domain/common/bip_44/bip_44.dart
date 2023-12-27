@@ -18,8 +18,6 @@ abstract class DerivationPath<T extends BlockchainId> {
 
 abstract class DerivationPathFactory<T extends BlockchainId> {
   DerivationPath<T> getAddressAtPath({
-    int account = 0,
-    int change = 0,
-    required int addressIndex,
+    required int index,
   });
 }

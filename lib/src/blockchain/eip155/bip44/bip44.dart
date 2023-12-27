@@ -1,5 +1,5 @@
-import '../../../types/common/caip/blockchain_id/blockchain_namespace.dart';
-import '../../../types/common/bip_44/bip_44.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_namespace.dart';
+import '../../../domain/common/bip_44/bip_44.dart';
 import '../eip155_blockchain_id/eip155_blockchain_id.dart';
 import '../eip155_blockchain_id/eip155_blockchain_reference.dart';
 
@@ -43,13 +43,10 @@ class Eip155DerivationPathFactory
       : blockchainId = Eip155BlockchainId(reference);
 
   @override
-  DerivationPath<Eip155BlockchainId> getAddressAtPath(
-      {int account = 0, int change = 0, required int addressIndex}) {
+  DerivationPath<Eip155BlockchainId> getAddressAtPath({required int index}) {
     return Eip155DerivationPath(
       blockchainId.reference,
-      account: account,
-      change: change,
-      addressIndex: addressIndex,
+      addressIndex: index,
     );
   }
 }

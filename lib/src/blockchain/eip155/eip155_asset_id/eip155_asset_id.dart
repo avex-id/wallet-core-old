@@ -1,6 +1,6 @@
 import 'package:web3dart/credentials.dart';
 
-import '../../../types/common/caip/asset_id/asset_id.dart';
+import '../../../domain/common/caip/blockchain_asset_id/asset_id.dart';
 import '../eip155_blockchain_id/eip155_blockchain_reference.dart';
 import 'eip155_asset_namespace.dart';
 import 'eip155_asset_type.dart';

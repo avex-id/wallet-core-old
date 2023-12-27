@@ -1,9 +1,9 @@
 // Blockchain ID
 export 'producers/caip/blockchain_id_factory_producer.dart';
 
-export 'types/common/caip/blockchain_id/blockchain_id.dart';
-export 'types/common/caip/blockchain_id/blockchain_namespace.dart';
-export 'types/common/caip/blockchain_id/blockchain_reference.dart';
+export 'domain/common/caip/blockchain_id/blockchain_id.dart';
+export 'domain/common/caip/blockchain_id/blockchain_namespace.dart';
+export 'domain/common/caip/blockchain_id/blockchain_reference.dart';
 
 export 'blockchain/solana/solana_blockchain_id/solana_blockchain_id.dart';
 export 'blockchain/solana/solana_blockchain_id/solana_blockchain_reference.dart';
@@ -17,7 +17,7 @@ export 'blockchain/bip122/bip122_blockchain_id/bip122_blockchain_reference.dart'
 // Account ID
 export 'producers/caip/blockchain_account_id_factory_producer.dart';
 
-export 'types/common/caip/account_id/blockchain_account_id.dart';
+export 'domain/common/caip/blockchain_account_id/blockchain_account_id.dart';
 
 export 'blockchain/solana/solana_account_id/solana_account_id.dart';
 
@@ -29,9 +29,9 @@ export 'blockchain/bip122/bip122_account_id/bip122_account_id.dart';
 export 'producers/caip/blockchain_asset_id/blockchain_asset_id_factory_producer.dart';
 export 'producers/caip/blockchain_asset_id/blockchain_asset_type_factory_producer.dart';
 
-export 'types/common/caip/asset_id/asset_id.dart';
-export 'types/common/caip/asset_id/asset_type.dart';
-export 'types/common/caip/asset_id/asset_namespace.dart';
+export 'domain/common/caip/blockchain_asset_id/asset_id.dart';
+export 'domain/common/caip/blockchain_asset_id/asset_type.dart';
+export 'domain/common/caip/blockchain_asset_id/asset_namespace.dart';
 
 export 'blockchain/solana/solana_asset_id/solana_asset_id.dart';
 export 'blockchain/solana/solana_asset_id/solana_asset_type.dart';
@@ -46,15 +46,15 @@ export 'blockchain/bip122/bip122_asset_id/bip122_asset_type.dart';
 export 'blockchain/bip122/bip122_asset_id/bip122_asset_namespace.dart';
 
 // Mnemonic
-export 'types/common/mnemonic/mnemonic.dart';
+export 'domain/common/mnemonic/mnemonic.dart';
 
 // Shamir Secret
-export 'types/common/shamir_secret/shamir_secret.dart';
+export 'domain/common/shamir_secret/shamir_secret.dart';
 
 // Derivation Path
 export 'producers/bip44/bip44_factory_producer.dart';
 
-export 'types/common/bip_44/bip_44.dart';
+export 'domain/common/bip_44/bip_44.dart';
 
 export 'blockchain/solana/bip44/bip44.dart';
 
@@ -64,10 +64,22 @@ export 'blockchain/bip122/bip44/bip44.dart';
 
 // Keypair
 export 'producers/keypair/keypair_factory_producer.dart';
-export 'types/common/keypair/keypair.dart';
+
+export 'domain/common/keypair/keypair.dart';
 
 export 'blockchain/solana/keypair/solana_keypair.dart';
 
 export 'blockchain/eip155/keypair/eip155_keypair.dart';
 
 export 'blockchain/bip122/keypair/bip122_keypair.dart';
+
+// Account
+export 'producers/account/blockchhain_account_factory_producer.dart';
+
+export 'domain/common/blockchain_account/blockchain_account.dart';
+
+export 'blockchain/solana/solana_account/solana_account.dart';
+
+export 'blockchain/eip155/eip155_account/eip155_account.dart';
+
+export 'blockchain/bip122/bip122_account/bip122_account.dart';

@@ -1,6 +1,6 @@
 import 'package:coinlib/coinlib.dart';
 
-import '../../../types/common/caip/account_id/blockchain_account_id.dart';
+import '../../../domain/common/caip/blockchain_account_id/blockchain_account_id.dart';
 import '../bip122_blockchain_id/bip122_blockchain_id.dart';
 import '../bip122_blockchain_id/bip122_blockchain_reference.dart';
 

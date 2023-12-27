@@ -4,8 +4,8 @@ import '../../blockchain/eip155/eip155_account_id/eip155_account_id.dart';
 import '../../blockchain/eip155/eip155_blockchain_id/eip155_blockchain_reference.dart';
 import '../../blockchain/solana/solana_account_id/solana_account_id.dart';
 import '../../blockchain/solana/solana_blockchain_id/solana_blockchain_reference.dart';
-import '../../types/common/caip/account_id/blockchain_account_id.dart';
-import '../../types/common/caip/blockchain_id/blockchain_reference.dart';
+import '../../domain/common/caip/blockchain_account_id/blockchain_account_id.dart';
+import '../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 
 class BlockchainAccountIdFactoryProducer {
   static BlockchainAccountIdFactory getFactory(BlockchainReference reference) {

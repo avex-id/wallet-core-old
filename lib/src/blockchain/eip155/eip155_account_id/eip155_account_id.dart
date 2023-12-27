@@ -1,6 +1,6 @@
 import 'package:web3dart/web3dart.dart';
 
-import '../../../types/common/caip/account_id/blockchain_account_id.dart';
+import '../../../domain/common/caip/blockchain_account_id/blockchain_account_id.dart';
 import '../eip155_blockchain_id/eip155_blockchain_id.dart';
 import '../eip155_blockchain_id/eip155_blockchain_reference.dart';
 

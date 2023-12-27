@@ -1,5 +1,5 @@
-import '../../../types/common/caip/blockchain_id/blockchain_id.dart';
-import '../../../types/common/caip/blockchain_id/blockchain_namespace.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_id.dart';
+import '../../../domain/common/caip/blockchain_id/blockchain_namespace.dart';
 import 'bip122_blockchain_reference.dart';
 
 class Bip122BlockchainId implements BlockchainId<Bip122Reference> {
