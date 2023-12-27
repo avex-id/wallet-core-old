@@ -11,6 +11,18 @@ and the Flutter guide for
 [developing packages and plugins](https://flutter.dev/developing-packages). 
 -->
 
+# Wallet Core
+
+## Installation
+
+### 1. Docker command to build libsecp256k1.so
+
+```docker build --tag coinlib:secp256k1 --file Dockerfile .```
+
+### 2. Docker command to run and extract libsecp256k1.so
+
+```docker run --volume "ABSOLUTE_PATH/wallet_core/build:/host" coinlib:secp256k1 bash -c "cp /secp256k1/output/libsecp256k1.so /host/"```
+
 TODO: Put a short description of the package here that helps potential users
 know whether this package might be useful for them.
 
