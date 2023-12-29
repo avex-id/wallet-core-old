@@ -21,15 +21,14 @@ class KeyPairFactoryProducer {
   }
 }
 
-class SeedStrategyProducer {
-  static SeedStrategyFactory getFactory(
-      BlockchainReference reference) {
+class SeedKeyPairStrategyProducer {
+  static SeedKeyPairStrategyFactory getFactory(BlockchainReference reference) {
     if (reference is Eip155Reference) {
-      return Eip155SeedStrategyFactory(reference);
+      return Eip155SeedKeyPairStrategyFactory(reference);
     } else if (reference is SolanaReference) {
-      return SolanaSeedStrategyFactory(reference);
+      return SolanaSeedKeyPairStrategyFactory(reference);
     } else if (reference is Bip122Reference) {
-      return Bip122SeedStrategyFactory(reference);
+      return Bip122SeedKeyPairStrategyFactory(reference);
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }

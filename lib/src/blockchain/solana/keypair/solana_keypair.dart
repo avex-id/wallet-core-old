@@ -112,24 +112,24 @@ class SolanaKeyPairFactory
   }
 }
 
-class SolanaSeedStrategy implements SeedStrategy<SolanaKeyPair> {
+class SolanaSeedKeyPairStrategy implements SeedKeyPairStrategy<SolanaKeyPair> {
   final SolanaReference reference;
   final Uint8List _seed;
   final int _index;
   late final SolanaKeyPair _keyPair;
 
-  SolanaSeedStrategy._(this.reference, this._seed, this._index);
+  SolanaSeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
-  factory SolanaSeedStrategy.generateKeyPairFromSeedAndIndex(
+  factory SolanaSeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
       SolanaReference reference, Uint8List seed, int index) {
-    return SolanaSeedStrategy._(reference, seed, index);
+    return SolanaSeedKeyPairStrategy._(reference, seed, index);
   }
 
   @override
   Future<SolanaKeyPair> generate() async {
     Ed25519HDKeyPair key = await _fromSeedAndIndex(_seed, _index);
-    _keyPair = await SolanaKeyPairFactory(reference).fromPrivateKey(
-        await key.extract());
+    _keyPair = await SolanaKeyPairFactory(reference)
+        .fromPrivateKey(await key.extract());
     return _keyPair;
   }
 
@@ -148,15 +148,16 @@ class SolanaSeedStrategy implements SeedStrategy<SolanaKeyPair> {
   }
 }
 
-class SolanaSeedStrategyFactory implements SeedStrategyFactory<SolanaKeyPair> {
+class SolanaSeedKeyPairStrategyFactory
+    implements SeedKeyPairStrategyFactory<SolanaKeyPair> {
   final SolanaReference reference;
 
-  SolanaSeedStrategyFactory(this.reference);
+  SolanaSeedKeyPairStrategyFactory(this.reference);
 
   @override
-  SeedStrategy<SolanaKeyPair> createFromSeedAndIndex(
+  SeedKeyPairStrategy<SolanaKeyPair> createFromSeedAndIndex(
       Uint8List seed, int index) {
-    return SolanaSeedStrategy.generateKeyPairFromSeedAndIndex(
+    return SolanaSeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
         reference, seed, index);
   }
 }

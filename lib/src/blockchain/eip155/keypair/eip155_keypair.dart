@@ -111,23 +111,24 @@ class Eip155KeyPairFactory
   }
 }
 
-class Eip155SeedStrategy implements SeedStrategy<Eip155KeyPair> {
+class Eip155SeedKeyPairStrategy implements SeedKeyPairStrategy<Eip155KeyPair> {
   final Eip155Reference reference;
   final Uint8List _seed;
   final int _index;
   late final Eip155KeyPair _keyPair;
 
-  Eip155SeedStrategy._(this.reference, this._seed, this._index);
+  Eip155SeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
-  factory Eip155SeedStrategy.generateKeyPairFromSeedAndIndex(
+  factory Eip155SeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
       Eip155Reference reference, Uint8List seed, int index) {
-    return Eip155SeedStrategy._(reference, seed, index);
+    return Eip155SeedKeyPairStrategy._(reference, seed, index);
   }
 
   @override
   Future<Eip155KeyPair> generate() async {
     ExtendedKey extendedKey = _fromSeedAndIndex(_seed, _index);
-    _keyPair = await Eip155KeyPairFactory(reference).fromPrivateKey(extendedKey);
+    _keyPair =
+        await Eip155KeyPairFactory(reference).fromPrivateKey(extendedKey);
     return _keyPair;
   }
 
@@ -147,15 +148,16 @@ class Eip155SeedStrategy implements SeedStrategy<Eip155KeyPair> {
   }
 }
 
-class Eip155SeedStrategyFactory implements SeedStrategyFactory<Eip155KeyPair> {
+class Eip155SeedKeyPairStrategyFactory
+    implements SeedKeyPairStrategyFactory<Eip155KeyPair> {
   final Eip155Reference reference;
 
-  Eip155SeedStrategyFactory(this.reference);
+  Eip155SeedKeyPairStrategyFactory(this.reference);
 
   @override
-  SeedStrategy<Eip155KeyPair> createFromSeedAndIndex(
+  SeedKeyPairStrategy<Eip155KeyPair> createFromSeedAndIndex(
       Uint8List seed, int index) {
-    return Eip155SeedStrategy.generateKeyPairFromSeedAndIndex(
+    return Eip155SeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
         reference, seed, index);
   }
 }

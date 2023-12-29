@@ -13,17 +13,17 @@ final List<BlockchainId> blockchainIds = [
   Bip122BlockchainId(Bip122Reference.bitcoinMainnet),
 ];
 
-class KeyPairAuthenticator<U extends KeyPair>
-    implements BlockchainAccountAuthenticator {
-  final U _keyPair;
+// class KeyPairAuthenticator<U extends KeyPair>
+//     implements BlockchainAccountAuthenticator {
+//   final U _keyPair;
 
-  KeyPairAuthenticator(this._keyPair);
+//   KeyPairAuthenticator(this._keyPair);
 
-  @override
-  Future<String> authenticate(String message) async {
-    return _keyPair.signMessage(message);
-  }
-}
+//   @override
+//   Future<String> authenticate(String message) async {
+//     return _keyPair.signMessage(message);
+//   }
+// }
 
 Future<void> main() async {
   await loadCoinlib();
@@ -44,8 +44,8 @@ Future<void> main() async {
 
   for (var blockchainId in blockchainIds) {
     // Generate KeyPair
-    SeedStrategy seedStrategy =
-        SeedStrategyProducer.getFactory(blockchainId.reference)
+    SeedKeyPairStrategy seedStrategy =
+        SeedKeyPairStrategyProducer.getFactory(blockchainId.reference)
             .createFromSeedAndIndex(mnemonic.toSeed, 0);
     final keyPairFactory =
         KeyPairFactoryProducer.getFactory(blockchainId.reference)
@@ -54,15 +54,14 @@ Future<void> main() async {
     keyPair.setSigner(seedStrategy);
 
     // Generate Blockchain Account
-    final accountGeneratorStrategy =
-        KeyPairBlockchainAccountGeneratorStrategyProducer.getFactory(
-                blockchainId.reference)
-            .createFromKeyPair(keyPair);
+    final keyPairStrategy = KeyPairBlockchainAccountStrategyProducer.getFactory(
+            blockchainId.reference)
+        .createFromKeyPair(keyPair);
     final accountFactory =
         BlockchainAccountFactoryProducer.getFactory(blockchainId.reference)
-          ..setGenerator(accountGeneratorStrategy);
+          ..setGenerator(keyPairStrategy);
     final account = await accountFactory.generate();
-    account.setAuthenticator(KeyPairAuthenticator(keyPair));
+    account.setAuthenticator(keyPairStrategy);
     print(
         "${account.blockchainAccountId.blockchainId.reference.name} Account: ${account.blockchainAccountId.address}");
     print(

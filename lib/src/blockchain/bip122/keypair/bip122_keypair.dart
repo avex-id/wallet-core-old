@@ -108,23 +108,24 @@ class Bip122KeyPairFactory
   }
 }
 
-class Bip122SeedStrategy implements SeedStrategy<Bip122KeyPair> {
+class Bip122SeedKeyPairStrategy implements SeedKeyPairStrategy<Bip122KeyPair> {
   final Bip122Reference reference;
   final Uint8List _seed;
   final int _index;
   late final Bip122KeyPair _keyPair;
 
-  Bip122SeedStrategy._(this.reference, this._seed, this._index);
+  Bip122SeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
-  factory Bip122SeedStrategy.generateKeyPairFromSeedAndIndex(
+  factory Bip122SeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
       Bip122Reference reference, Uint8List seed, int index) {
-    return Bip122SeedStrategy._(reference, seed, index);
+    return Bip122SeedKeyPairStrategy._(reference, seed, index);
   }
 
   @override
   Future<Bip122KeyPair> generate() async {
     HDPrivateKey hdKey = _fromSeedAndIndex(_seed, _index);
-    _keyPair = await Bip122KeyPairFactory(reference).fromPrivateKey(hdKey.privateKey);
+    _keyPair =
+        await Bip122KeyPairFactory(reference).fromPrivateKey(hdKey.privateKey);
     return _keyPair;
   }
 
@@ -146,15 +147,16 @@ class Bip122SeedStrategy implements SeedStrategy<Bip122KeyPair> {
   }
 }
 
-class Bip122SeedStrategyFactory implements SeedStrategyFactory<Bip122KeyPair> {
+class Bip122SeedKeyPairStrategyFactory
+    implements SeedKeyPairStrategyFactory<Bip122KeyPair> {
   final Bip122Reference reference;
 
-  Bip122SeedStrategyFactory(this.reference);
+  Bip122SeedKeyPairStrategyFactory(this.reference);
 
   @override
-  SeedStrategy<Bip122KeyPair> createFromSeedAndIndex(
+  SeedKeyPairStrategy<Bip122KeyPair> createFromSeedAndIndex(
       Uint8List seed, int index) {
-    return Bip122SeedStrategy.generateKeyPairFromSeedAndIndex(
+    return Bip122SeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
         reference, seed, index);
   }
 }

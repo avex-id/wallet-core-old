@@ -60,17 +60,15 @@ class SolanaBlockchainAccountFactory
   }
 }
 
-class SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategy
-    implements
-        KeyPairKeyPairBlockchainAccountGeneratorStrategy<
-            SolanaBlockchainAccount> {
+class SolanaKeyPairBlockchainAccountStrategy
+    implements KeyPairBlockchainAccountStrategy<SolanaBlockchainAccount> {
   final SolanaKeyPair _keyPair;
 
-  SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategy._(this._keyPair);
+  SolanaKeyPairBlockchainAccountStrategy._(this._keyPair);
 
-  factory SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategy.generateAccountFromKeyPair(
+  factory SolanaKeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
       SolanaKeyPair keyPair) {
-    return SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategy._(keyPair);
+    return SolanaKeyPairBlockchainAccountStrategy._(keyPair);
   }
 
   @override
@@ -78,16 +76,21 @@ class SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategy
     return SolanaBlockchainAccountFactory(_keyPair.blockchainId.reference)
         .fromAddress((await _keyPair.extractPublicKey()));
   }
+
+  @override
+  Future<String> authenticate(String message) async {
+    return _keyPair.signMessage(message);
+  }
 }
 
-class SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategyFactory
+class SolanaKeyPairBlockchainAccountStrategyFactory
     implements
-        KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory<
-            SolanaBlockchainAccount, SolanaKeyPair> {
+        KeyPairBlockchainAccountStrategyFactory<SolanaBlockchainAccount,
+            SolanaKeyPair> {
   @override
-  KeyPairKeyPairBlockchainAccountGeneratorStrategy<SolanaBlockchainAccount>
-      createFromKeyPair(SolanaKeyPair keyPair) {
-    return SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategy
-        .generateAccountFromKeyPair(keyPair);
+  KeyPairBlockchainAccountStrategy<SolanaBlockchainAccount> createFromKeyPair(
+      SolanaKeyPair keyPair) {
+    return SolanaKeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
+        keyPair);
   }
 }

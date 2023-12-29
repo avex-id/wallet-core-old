@@ -61,17 +61,15 @@ class Eip155BlockchainAccountFactory
   }
 }
 
-class Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategy
-    implements
-        KeyPairKeyPairBlockchainAccountGeneratorStrategy<
-            Eip155BlockchainAccount> {
+class Eip155KeyPairBlockchainAccountStrategy
+    implements KeyPairBlockchainAccountStrategy<Eip155BlockchainAccount> {
   final Eip155KeyPair _keyPair;
 
-  Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategy._(this._keyPair);
+  Eip155KeyPairBlockchainAccountStrategy._(this._keyPair);
 
-  factory Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategy.generateAccountFromKeyPair(
+  factory Eip155KeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
       Eip155KeyPair keyPair) {
-    return Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategy._(keyPair);
+    return Eip155KeyPairBlockchainAccountStrategy._(keyPair);
   }
 
   @override
@@ -79,16 +77,21 @@ class Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategy
     return Eip155BlockchainAccountFactory(_keyPair.blockchainId.reference)
         .fromAddress((await _keyPair.extractPublicKey()));
   }
+
+  @override
+  Future<String> authenticate(String message) async {
+    return _keyPair.signMessage(message);
+  }
 }
 
-class Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory
+class Eip155KeyPairBlockchainAccountStrategyFactory
     implements
-        KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory<
-            Eip155BlockchainAccount, Eip155KeyPair> {
+        KeyPairBlockchainAccountStrategyFactory<Eip155BlockchainAccount,
+            Eip155KeyPair> {
   @override
-  KeyPairKeyPairBlockchainAccountGeneratorStrategy<Eip155BlockchainAccount>
-      createFromKeyPair(Eip155KeyPair keyPair) {
-    return Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategy
-        .generateAccountFromKeyPair(keyPair);
+  KeyPairBlockchainAccountStrategy<Eip155BlockchainAccount> createFromKeyPair(
+      Eip155KeyPair keyPair) {
+    return Eip155KeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
+        keyPair);
   }
 }

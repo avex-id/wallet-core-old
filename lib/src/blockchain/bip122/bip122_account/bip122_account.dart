@@ -61,17 +61,15 @@ class Bip122BlockchainAccountFactory
   }
 }
 
-class Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategy
-    implements
-        KeyPairKeyPairBlockchainAccountGeneratorStrategy<
-            Bip122BlockchainAccount> {
+class Bip122KeyPairBlockchainAccountStrategy
+    implements KeyPairBlockchainAccountStrategy<Bip122BlockchainAccount> {
   final Bip122KeyPair _keyPair;
 
-  Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategy._(this._keyPair);
+  Bip122KeyPairBlockchainAccountStrategy._(this._keyPair);
 
-  factory Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategy.generateAccountFromKeyPair(
+  factory Bip122KeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
       Bip122KeyPair keyPair) {
-    return Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategy._(keyPair);
+    return Bip122KeyPairBlockchainAccountStrategy._(keyPair);
   }
 
   @override
@@ -81,16 +79,21 @@ class Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategy
             await _keyPair.extractPublicKey(),
             hrp: _keyPair.blockchainId.reference.networkParams.bech32Hrp));
   }
+
+  @override
+  Future<String> authenticate(String message) async {
+    return _keyPair.signMessage(message);
+  }
 }
 
-class Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory
+class Bip122KeyPairBlockchainAccountStrategyFactory
     implements
-        KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory<
-            Bip122BlockchainAccount, Bip122KeyPair> {
+        KeyPairBlockchainAccountStrategyFactory<Bip122BlockchainAccount,
+            Bip122KeyPair> {
   @override
-  KeyPairKeyPairBlockchainAccountGeneratorStrategy<Bip122BlockchainAccount>
-      createFromKeyPair(Bip122KeyPair keyPair) {
-    return Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategy
-        .generateAccountFromKeyPair(keyPair);
+  KeyPairBlockchainAccountStrategy<Bip122BlockchainAccount> createFromKeyPair(
+      Bip122KeyPair keyPair) {
+    return Bip122KeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
+        keyPair);
   }
 }

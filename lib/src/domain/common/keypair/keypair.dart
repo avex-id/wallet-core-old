@@ -31,11 +31,11 @@ abstract class KeyPairFactory<T extends KeyPair<U, V>, U, V>
   void setGenerator(KeyPairGenerator<T> generator);
 }
 
-abstract class SeedStrategy<U extends KeyPair>
+abstract class SeedKeyPairStrategy<U extends KeyPair>
     implements KeyPairGenerator<U>, KeyPairSigner {}
 
-abstract class SeedStrategyFactory<U extends KeyPair> {
-  SeedStrategy<U> createFromSeedAndIndex(Uint8List seed, int index);
+abstract class SeedKeyPairStrategyFactory<U extends KeyPair> {
+  SeedKeyPairStrategy<U> createFromSeedAndIndex(Uint8List seed, int index);
 }
 
 

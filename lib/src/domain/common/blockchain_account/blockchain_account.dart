@@ -22,10 +22,10 @@ abstract class BlockchainAccountFactory<T extends BlockchainAccount<U>,
   void setGenerator(BlockchainAccountGenerator<T> generator);
 }
 
-abstract class KeyPairKeyPairBlockchainAccountGeneratorStrategy<U extends BlockchainAccount>
-    implements BlockchainAccountGenerator<U> {}
+abstract class KeyPairBlockchainAccountStrategy<U extends BlockchainAccount>
+    implements BlockchainAccountGenerator<U>, BlockchainAccountAuthenticator {}
 
-abstract class KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory<U extends BlockchainAccount,
-    V extends KeyPair> {
-  KeyPairKeyPairBlockchainAccountGeneratorStrategy<U> createFromKeyPair(V keyPair);
+abstract class KeyPairBlockchainAccountStrategyFactory<
+    U extends BlockchainAccount, V extends KeyPair> {
+  KeyPairBlockchainAccountStrategy<U> createFromKeyPair(V keyPair);
 }

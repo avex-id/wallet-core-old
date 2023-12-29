@@ -21,15 +21,15 @@ class BlockchainAccountFactoryProducer {
   }
 }
 
-class KeyPairBlockchainAccountGeneratorStrategyProducer {
-  static KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory getFactory(
+class KeyPairBlockchainAccountStrategyProducer {
+  static KeyPairBlockchainAccountStrategyFactory getFactory(
       BlockchainReference reference) {
     if (reference is Eip155Reference) {
-      return Eip155KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory();
+      return Eip155KeyPairBlockchainAccountStrategyFactory();
     } else if (reference is SolanaReference) {
-      return SolanaKeyPairKeyPairBlockchainAccountGeneratorStrategyFactory();
+      return SolanaKeyPairBlockchainAccountStrategyFactory();
     } else if (reference is Bip122Reference) {
-      return Bip122KeyPairKeyPairBlockchainAccountGeneratorStrategyFactory();
+      return Bip122KeyPairBlockchainAccountStrategyFactory();
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }
