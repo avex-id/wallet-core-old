@@ -21,32 +21,32 @@ class KeyPairFactoryProducer {
   }
 }
 
-class SeedKeyPairGeneratorStrategyProducer {
-  static SeedKeyPairGeneratorStrategyFactory getFactory(
+class SeedStrategyProducer {
+  static SeedStrategyFactory getFactory(
       BlockchainReference reference) {
     if (reference is Eip155Reference) {
-      return Eip155SeedKeyPairGeneratorStrategyFactory(reference);
+      return Eip155SeedStrategyFactory(reference);
     } else if (reference is SolanaReference) {
-      return SolanaSeedKeyPairGeneratorStrategyFactory(reference);
+      return SolanaSeedStrategyFactory(reference);
     } else if (reference is Bip122Reference) {
-      return Bip122SeedKeyPairGeneratorStrategyFactory(reference);
+      return Bip122SeedStrategyFactory(reference);
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }
   }
 }
 
-class KeyPairSignerStrategyProducer {
-  static KeyPairSignerStrategyFactory getFactory(
-      BlockchainReference reference) {
-    if (reference is Eip155Reference) {
-      return Eip155KeyPairSignerStrategyFactory();
-    } else if (reference is SolanaReference) {
-      return SolanaKeyPairSignerStrategyFactory();
-    } else if (reference is Bip122Reference) {
-      return Bip122KeyPairSignerStrategyFactory();
-    } else {
-      throw Exception('Invalid blockchain reference: ${reference.toString()}');
-    }
-  }
-}
+// class KeyPairSignerStrategyProducer {
+//   static KeyPairSignerStrategyFactory getFactory(
+//       BlockchainReference reference) {
+//     if (reference is Eip155Reference) {
+//       return Eip155KeyPairSignerStrategyFactory();
+//     } else if (reference is SolanaReference) {
+//       return SolanaKeyPairSignerStrategyFactory();
+//     } else if (reference is Bip122Reference) {
+//       return Bip122KeyPairSignerStrategyFactory();
+//     } else {
+//       throw Exception('Invalid blockchain reference: ${reference.toString()}');
+//     }
+//   }
+// }

@@ -111,69 +111,119 @@ class Eip155KeyPairFactory
   }
 }
 
-class Eip155SeedKeyPairGeneratorStrategy
-    implements SeedKeyPairGeneratorStrategy<Eip155KeyPair> {
+class Eip155SeedStrategy implements SeedStrategy<Eip155KeyPair> {
   final Eip155Reference reference;
   final Uint8List _seed;
   final int _index;
+  late final Eip155KeyPair _keyPair;
 
-  Eip155SeedKeyPairGeneratorStrategy._(this.reference, this._seed, this._index);
+  Eip155SeedStrategy._(this.reference, this._seed, this._index);
 
-  factory Eip155SeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
+  factory Eip155SeedStrategy.generateKeyPairFromSeedAndIndex(
       Eip155Reference reference, Uint8List seed, int index) {
-    return Eip155SeedKeyPairGeneratorStrategy._(reference, seed, index);
+    return Eip155SeedStrategy._(reference, seed, index);
   }
 
   @override
   Future<Eip155KeyPair> generate() async {
-    final Chain chain = Chain.seed(HEX.encode(_seed));
-    String path = Eip155DerivationPath(reference, addressIndex: _index).path;
-    ExtendedKey extendedKey = chain.forPath(path);
-    return Eip155KeyPairFactory(reference).fromPrivateKey(extendedKey);
-  }
-}
-
-class Eip155SeedKeyPairGeneratorStrategyFactory
-    implements SeedKeyPairGeneratorStrategyFactory<Eip155KeyPair> {
-  final Eip155Reference reference;
-
-  Eip155SeedKeyPairGeneratorStrategyFactory(this.reference);
-
-  @override
-  SeedKeyPairGeneratorStrategy<Eip155KeyPair> createFromSeedAndIndex(
-      Uint8List seed, int index) {
-    return Eip155SeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
-        reference, seed, index);
-  }
-}
-
-class Eip155KeyPairSignerStrategy
-    implements KeyPairSignerStrategy<Eip155KeyPair> {
-  final Eip155KeyPair _keyPair;
-
-  Eip155KeyPairSignerStrategy._(this._keyPair);
-
-  factory Eip155KeyPairSignerStrategy.fromKeyPair(Eip155KeyPair keyPair) {
-    return Eip155KeyPairSignerStrategy._(keyPair);
+    ExtendedKey extendedKey = _fromSeedAndIndex(_seed, _index);
+    _keyPair = await Eip155KeyPairFactory(reference).fromPrivateKey(extendedKey);
+    return _keyPair;
   }
 
   @override
   Future<String> signMessage(String message) async {
-    final ExtendedKey? secretKey = await _keyPair.extractSecretKey();
-    if (secretKey == null) {
-      throw Exception('Cannot sign message without secret key');
-    }
+    ExtendedKey? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromSeedAndIndex(_seed, _index);
     return EthSigUtil.signPersonalMessage(
         message: hexToBytes(HEX.encode(message.codeUnits)),
         privateKey: secretKey.privateKeyHex());
   }
-}
 
-class Eip155KeyPairSignerStrategyFactory
-    implements KeyPairSignerStrategyFactory<Eip155KeyPair> {
-  @override
-  KeyPairSignerStrategy<Eip155KeyPair> createFromKeyPair(
-      Eip155KeyPair keyPair) {
-    return Eip155KeyPairSignerStrategy.fromKeyPair(keyPair);
+  ExtendedKey _fromSeedAndIndex(Uint8List seed, int index) {
+    final Chain chain = Chain.seed(HEX.encode(seed));
+    String path = Eip155DerivationPath(reference, addressIndex: index).path;
+    return chain.forPath(path);
   }
 }
+
+class Eip155SeedStrategyFactory implements SeedStrategyFactory<Eip155KeyPair> {
+  final Eip155Reference reference;
+
+  Eip155SeedStrategyFactory(this.reference);
+
+  @override
+  SeedStrategy<Eip155KeyPair> createFromSeedAndIndex(
+      Uint8List seed, int index) {
+    return Eip155SeedStrategy.generateKeyPairFromSeedAndIndex(
+        reference, seed, index);
+  }
+}
+
+
+// class Eip155SeedKeyPairGeneratorStrategy
+//     implements SeedKeyPairGeneratorStrategy<Eip155KeyPair> {
+//   final Eip155Reference reference;
+//   final Uint8List _seed;
+//   final int _index;
+
+//   Eip155SeedKeyPairGeneratorStrategy._(this.reference, this._seed, this._index);
+
+//   factory Eip155SeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
+//       Eip155Reference reference, Uint8List seed, int index) {
+//     return Eip155SeedKeyPairGeneratorStrategy._(reference, seed, index);
+//   }
+
+//   @override
+//   Future<Eip155KeyPair> generate() async {
+//     final Chain chain = Chain.seed(HEX.encode(_seed));
+//     String path = Eip155DerivationPath(reference, addressIndex: _index).path;
+//     ExtendedKey extendedKey = chain.forPath(path);
+//     return Eip155KeyPairFactory(reference).fromPrivateKey(extendedKey);
+//   }
+// }
+
+// class Eip155SeedKeyPairGeneratorStrategyFactory
+//     implements SeedKeyPairGeneratorStrategyFactory<Eip155KeyPair> {
+//   final Eip155Reference reference;
+
+//   Eip155SeedKeyPairGeneratorStrategyFactory(this.reference);
+
+//   @override
+//   SeedKeyPairGeneratorStrategy<Eip155KeyPair> createFromSeedAndIndex(
+//       Uint8List seed, int index) {
+//     return Eip155SeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
+//         reference, seed, index);
+//   }
+// }
+
+// class Eip155KeyPairSignerStrategy
+//     implements KeyPairSignerStrategy<Eip155KeyPair> {
+//   final Eip155KeyPair _keyPair;
+
+//   Eip155KeyPairSignerStrategy._(this._keyPair);
+
+//   factory Eip155KeyPairSignerStrategy.fromKeyPair(Eip155KeyPair keyPair) {
+//     return Eip155KeyPairSignerStrategy._(keyPair);
+//   }
+
+//   @override
+//   Future<String> signMessage(String message) async {
+//     final ExtendedKey? secretKey = await _keyPair.extractSecretKey();
+//     if (secretKey == null) {
+//       throw Exception('Cannot sign message without secret key');
+//     }
+//     return EthSigUtil.signPersonalMessage(
+//         message: hexToBytes(HEX.encode(message.codeUnits)),
+//         privateKey: secretKey.privateKeyHex());
+//   }
+// }
+
+// class Eip155KeyPairSignerStrategyFactory
+//     implements KeyPairSignerStrategyFactory<Eip155KeyPair> {
+//   @override
+//   KeyPairSignerStrategy<Eip155KeyPair> createFromKeyPair(
+//       Eip155KeyPair keyPair) {
+//     return Eip155KeyPairSignerStrategy.fromKeyPair(keyPair);
+//   }
+// }

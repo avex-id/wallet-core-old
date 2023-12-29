@@ -44,16 +44,14 @@ Future<void> main() async {
 
   for (var blockchainId in blockchainIds) {
     // Generate KeyPair
-    SeedKeyPairGeneratorStrategy keyPairGeneratorStrategy =
-        SeedKeyPairGeneratorStrategyProducer.getFactory(blockchainId.reference)
+    SeedStrategy seedStrategy =
+        SeedStrategyProducer.getFactory(blockchainId.reference)
             .createFromSeedAndIndex(mnemonic.toSeed, 0);
     final keyPairFactory =
         KeyPairFactoryProducer.getFactory(blockchainId.reference)
-          ..setGenerator(keyPairGeneratorStrategy);
+          ..setGenerator(seedStrategy);
     final keyPair = await keyPairFactory.generate();
-    keyPair.setSigner(
-        KeyPairSignerStrategyProducer.getFactory(blockchainId.reference)
-            .createFromKeyPair(keyPair));
+    keyPair.setSigner(seedStrategy);
 
     // Generate Blockchain Account
     final accountGeneratorStrategy =

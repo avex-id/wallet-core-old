@@ -106,81 +106,55 @@ class Bip122KeyPairFactory
   WIF _fromPrivateKeyString(String privateKey, int version) {
     return WIF.fromString(privateKey, version: version);
   }
-
-  // static WIF _bip122PrivateKeyFromSeed(
-  //     Uint8List seed, Bip122Reference reference, int index, int version) {
-  //   HDPrivateKey hdWallet = HDPrivateKey.fromSeed(seed);
-  //   String path = Bip122DerivationPath(reference, addressIndex: index).path;
-  //   HDPrivateKey key = hdWallet.derivePath(path);
-  //   return WIF(privkey: key.privateKey, version: version);
-  // }
 }
 
-class Bip122SeedKeyPairGeneratorStrategy
-    implements SeedKeyPairGeneratorStrategy<Bip122KeyPair> {
+class Bip122SeedStrategy implements SeedStrategy<Bip122KeyPair> {
   final Bip122Reference reference;
   final Uint8List _seed;
   final int _index;
+  late final Bip122KeyPair _keyPair;
 
-  Bip122SeedKeyPairGeneratorStrategy._(this.reference, this._seed, this._index);
+  Bip122SeedStrategy._(this.reference, this._seed, this._index);
 
-  factory Bip122SeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
+  factory Bip122SeedStrategy.generateKeyPairFromSeedAndIndex(
       Bip122Reference reference, Uint8List seed, int index) {
-    return Bip122SeedKeyPairGeneratorStrategy._(reference, seed, index);
+    return Bip122SeedStrategy._(reference, seed, index);
   }
 
   @override
   Future<Bip122KeyPair> generate() async {
-    final HDPrivateKey hdWallet = HDPrivateKey.fromSeed(_seed);
-    String path = Bip122DerivationPath(reference, addressIndex: _index).path;
-    HDPrivateKey hdKey = hdWallet.derivePath(path);
-    return Bip122KeyPairFactory(reference).fromPrivateKey(hdKey.privateKey);
-  }
-}
-
-class Bip122SeedKeyPairGeneratorStrategyFactory
-    implements SeedKeyPairGeneratorStrategyFactory<Bip122KeyPair> {
-  final Bip122Reference reference;
-
-  Bip122SeedKeyPairGeneratorStrategyFactory(this.reference);
-
-  @override
-  SeedKeyPairGeneratorStrategy<Bip122KeyPair> createFromSeedAndIndex(
-      Uint8List seed, int index) {
-    return Bip122SeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
-        reference, seed, index);
-  }
-}
-
-class Bip122KeyPairSignerStrategy
-    implements KeyPairSignerStrategy<Bip122KeyPair> {
-  final Bip122KeyPair _keyPair;
-
-  Bip122KeyPairSignerStrategy._(this._keyPair);
-
-  factory Bip122KeyPairSignerStrategy.fromKeyPair(Bip122KeyPair keyPair) {
-    return Bip122KeyPairSignerStrategy._(keyPair);
+    HDPrivateKey hdKey = _fromSeedAndIndex(_seed, _index);
+    _keyPair = await Bip122KeyPairFactory(reference).fromPrivateKey(hdKey.privateKey);
+    return _keyPair;
   }
 
   @override
   Future<String> signMessage(String message) async {
-    final ECPrivateKey? secretKey = await _keyPair.extractSecretKey();
-    if (secretKey == null) {
-      throw Exception('Cannot sign message without secret key');
-    }
+    ECPrivateKey? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromSeedAndIndex(_seed, _index).privateKey;
     return MessageSignature.sign(
             key: secretKey,
             message: message,
             prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix)
         .toString();
   }
+
+  HDPrivateKey _fromSeedAndIndex(Uint8List seed, int index) {
+    HDPrivateKey hdWallet = HDPrivateKey.fromSeed(seed);
+    String path = Bip122DerivationPath(reference, addressIndex: index).path;
+    return hdWallet.derivePath(path);
+  }
 }
 
-class Bip122KeyPairSignerStrategyFactory
-    implements KeyPairSignerStrategyFactory<Bip122KeyPair> {
+class Bip122SeedStrategyFactory implements SeedStrategyFactory<Bip122KeyPair> {
+  final Bip122Reference reference;
+
+  Bip122SeedStrategyFactory(this.reference);
+
   @override
-  KeyPairSignerStrategy<Bip122KeyPair> createFromKeyPair(
-      Bip122KeyPair keyPair) {
-    return Bip122KeyPairSignerStrategy.fromKeyPair(keyPair);
+  SeedStrategy<Bip122KeyPair> createFromSeedAndIndex(
+      Uint8List seed, int index) {
+    return Bip122SeedStrategy.generateKeyPairFromSeedAndIndex(
+        reference, seed, index);
   }
 }

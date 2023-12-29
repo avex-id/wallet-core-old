@@ -48,8 +48,9 @@ class SolanaKeyPair
   String get publicKey => _publicKey.toBase58();
 
   @override
-  String get privateKey =>
-      (_privateKey == null) ? '' : base58encode(_privateKey!.bytes + _publicKey.bytes);
+  String get privateKey => (_privateKey == null)
+      ? ''
+      : base58encode(_privateKey!.bytes + _publicKey.bytes);
 }
 
 class SolanaKeyPairFactory
@@ -111,69 +112,51 @@ class SolanaKeyPairFactory
   }
 }
 
-class SolanaSeedKeyPairGeneratorStrategy
-    implements SeedKeyPairGeneratorStrategy<SolanaKeyPair> {
+class SolanaSeedStrategy implements SeedStrategy<SolanaKeyPair> {
   final SolanaReference reference;
   final Uint8List _seed;
   final int _index;
+  late final SolanaKeyPair _keyPair;
 
-  SolanaSeedKeyPairGeneratorStrategy._(this.reference, this._seed, this._index);
+  SolanaSeedStrategy._(this.reference, this._seed, this._index);
 
-  factory SolanaSeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
+  factory SolanaSeedStrategy.generateKeyPairFromSeedAndIndex(
       SolanaReference reference, Uint8List seed, int index) {
-    return SolanaSeedKeyPairGeneratorStrategy._(reference, seed, index);
+    return SolanaSeedStrategy._(reference, seed, index);
   }
 
   @override
   Future<SolanaKeyPair> generate() async {
-    String path = SolanaDerivationPath(reference, account: _index).path;
-    Ed25519HDKeyPair key =
-        await Ed25519HDKeyPair.fromSeedWithHdPath(seed: _seed, hdPath: path);
-    return SolanaKeyPairFactory(reference).fromPrivateKey(await key.extract());
-  }
-}
-
-class SolanaSeedKeyPairGeneratorStrategyFactory
-    implements SeedKeyPairGeneratorStrategyFactory<SolanaKeyPair> {
-  final SolanaReference reference;
-
-  SolanaSeedKeyPairGeneratorStrategyFactory(this.reference);
-
-  @override
-  SeedKeyPairGeneratorStrategy<SolanaKeyPair> createFromSeedAndIndex(
-      Uint8List seed, int index) {
-    return SolanaSeedKeyPairGeneratorStrategy.generateKeyPairFromSeedAndIndex(
-        reference, seed, index);
-  }
-}
-
-class SolanaKeyPairSignerStrategy
-    implements KeyPairSignerStrategy<SolanaKeyPair> {
-  final SolanaKeyPair _keyPair;
-
-  SolanaKeyPairSignerStrategy._(this._keyPair);
-
-  factory SolanaKeyPairSignerStrategy.fromKeyPair(SolanaKeyPair keyPair) {
-    return SolanaKeyPairSignerStrategy._(keyPair);
+    Ed25519HDKeyPair key = await _fromSeedAndIndex(_seed, _index);
+    _keyPair = await SolanaKeyPairFactory(reference).fromPrivateKey(
+        await key.extract());
+    return _keyPair;
   }
 
   @override
   Future<String> signMessage(String message) async {
-    final Ed25519HDKeyPairData? secretKey = await _keyPair.extractSecretKey();
-    if (secretKey == null) {
-      throw Exception('Cannot sign message without secret key');
-    }
+    Ed25519HDKeyPairData? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
     final Future<Ed25519HDKeyPair> signer =
         Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
     return (await (await signer).sign(message.codeUnits)).toBase58();
   }
+
+  Future<Ed25519HDKeyPair> _fromSeedAndIndex(Uint8List seed, int index) async {
+    String path = SolanaDerivationPath(reference, account: _index).path;
+    return Ed25519HDKeyPair.fromSeedWithHdPath(seed: _seed, hdPath: path);
+  }
 }
 
-class SolanaKeyPairSignerStrategyFactory
-    implements KeyPairSignerStrategyFactory<SolanaKeyPair> {
+class SolanaSeedStrategyFactory implements SeedStrategyFactory<SolanaKeyPair> {
+  final SolanaReference reference;
+
+  SolanaSeedStrategyFactory(this.reference);
+
   @override
-  KeyPairSignerStrategy<SolanaKeyPair> createFromKeyPair(
-      SolanaKeyPair keyPair) {
-    return SolanaKeyPairSignerStrategy.fromKeyPair(keyPair);
+  SeedStrategy<SolanaKeyPair> createFromSeedAndIndex(
+      Uint8List seed, int index) {
+    return SolanaSeedStrategy.generateKeyPairFromSeedAndIndex(
+        reference, seed, index);
   }
 }

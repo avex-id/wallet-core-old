@@ -1,7 +1,8 @@
 enum BlockchainNamespace {
   eip155('eip155'),
   solana('solana'),
-  bip122('bip122');
+  bip122('bip122'),
+  aptos('aptos');
 
   const BlockchainNamespace(this.value);
 
@@ -18,6 +19,8 @@ enum BlockchainNamespace {
         return BlockchainNamespace.solana;
       case 'bip122':
         return BlockchainNamespace.bip122;
+      case 'aptos':
+        return BlockchainNamespace.aptos;
       default:
         throw Exception("Unknown blockchain namespace: $namespace");
     }
@@ -33,6 +36,8 @@ extension Bip44PurposeExtension on BlockchainNamespace {
         return 44;
       case BlockchainNamespace.bip122:
         return 84;
+      case BlockchainNamespace.aptos:
+        return 44;
     }
   }
 }
