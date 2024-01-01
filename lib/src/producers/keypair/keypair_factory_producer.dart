@@ -35,6 +35,21 @@ class SeedKeyPairStrategyProducer {
   }
 }
 
+class PrivateKeyPairStrategyProducer {
+  static PrivateKeyPairStrategyFactory getFactory(
+      BlockchainReference reference) {
+    if (reference is Eip155Reference) {
+      return Eip155PrivateKeyPairStrategyFactory(reference);
+    } else if (reference is SolanaReference) {
+      return SolanaPrivateKeyPairStrategyFactory(reference);
+    } else if (reference is Bip122Reference) {
+      return Bip122PrivateKeyPairStrategyFactory(reference);
+    } else {
+      throw Exception('Invalid blockchain reference: ${reference.toString()}');
+    }
+  }
+}
+
 // class KeyPairSignerStrategyProducer {
 //   static KeyPairSignerStrategyFactory getFactory(
 //       BlockchainReference reference) {

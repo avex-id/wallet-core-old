@@ -38,6 +38,13 @@ abstract class SeedKeyPairStrategyFactory<U extends KeyPair> {
   SeedKeyPairStrategy<U> createFromSeedAndIndex(Uint8List seed, int index);
 }
 
+abstract class PrivateKeyPairStrategy<U extends KeyPair>
+    implements KeyPairGenerator<U>, KeyPairSigner {}
+
+abstract class PrivateKeyPairStrategyFactory<U extends KeyPair> {
+  PrivateKeyPairStrategy<U> createFromPrivateKeyString(String privateKey);
+}
+
 
 // abstract class SeedKeyPairGeneratorStrategy<U extends KeyPair>
 //     implements KeyPairGenerator<U> {}

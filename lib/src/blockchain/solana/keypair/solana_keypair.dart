@@ -108,7 +108,7 @@ class SolanaKeyPairFactory
   Ed25519HDKeyPairData _fromPrivateKeyBase58(String privateKey) {
     final List<int> prKey = base58decode(privateKey);
     final Ed25519HDPublicKey publicKey = Ed25519HDPublicKey(prKey.sublist(32));
-    return Ed25519HDKeyPairData(prKey, publicKey: publicKey);
+    return Ed25519HDKeyPairData(prKey.sublist(0, 32), publicKey: publicKey);
   }
 }
 
@@ -159,5 +159,56 @@ class SolanaSeedKeyPairStrategyFactory
       Uint8List seed, int index) {
     return SolanaSeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
         reference, seed, index);
+  }
+}
+
+class SolanaPrivateKeyPairStrategy
+    implements PrivateKeyPairStrategy<SolanaKeyPair> {
+  final SolanaBlockchainId blockchainId;
+  final String privateKey;
+  late final SolanaKeyPair _keyPair;
+
+  SolanaPrivateKeyPairStrategy._(SolanaReference reference, this.privateKey)
+      : blockchainId = SolanaBlockchainId(reference);
+
+  factory SolanaPrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
+      SolanaReference reference, String privateKey) {
+    return SolanaPrivateKeyPairStrategy._(reference, privateKey);
+  }
+
+  @override
+  Future<SolanaKeyPair> generate() async {
+    _keyPair = await SolanaKeyPairFactory(blockchainId.reference)
+        .fromPrivateKeyString(privateKey);
+    return _keyPair;
+  }
+
+  @override
+  Future<String> signMessage(String message) async {
+    Ed25519HDKeyPairData? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromPrivateKeyBase58(privateKey);
+    final Future<Ed25519HDKeyPair> signer =
+        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+    return (await (await signer).sign(message.codeUnits)).toBase58();
+  }
+
+  Ed25519HDKeyPairData _fromPrivateKeyBase58(String privateKey) {
+    final List<int> prKey = base58decode(privateKey);
+    final Ed25519HDPublicKey publicKey = Ed25519HDPublicKey(prKey.sublist(32));
+    return Ed25519HDKeyPairData(prKey.sublist(0, 32), publicKey: publicKey);
+  }
+}
+
+class SolanaPrivateKeyPairStrategyFactory
+    implements PrivateKeyPairStrategyFactory<SolanaKeyPair> {
+  final SolanaReference reference;
+
+  SolanaPrivateKeyPairStrategyFactory(this.reference);
+
+  @override
+  PrivateKeyPairStrategy<SolanaKeyPair> createFromPrivateKeyString(
+      String privateKey) {
+    return SolanaPrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
+        reference, privateKey);
   }
 }

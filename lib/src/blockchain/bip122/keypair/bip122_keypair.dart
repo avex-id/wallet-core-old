@@ -160,3 +160,50 @@ class Bip122SeedKeyPairStrategyFactory
         reference, seed, index);
   }
 }
+
+class Bip122PrivateKeyPairStrategy
+    implements PrivateKeyPairStrategy<Bip122KeyPair> {
+  final Bip122BlockchainId blockchainId;
+  final String privateKey;
+  late final Bip122KeyPair _keyPair;
+
+  Bip122PrivateKeyPairStrategy._(Bip122Reference reference, this.privateKey)
+      : blockchainId = Bip122BlockchainId(reference);
+
+  factory Bip122PrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
+      Bip122Reference reference, String privateKey) {
+    return Bip122PrivateKeyPairStrategy._(reference, privateKey);
+  }
+
+  @override
+  Future<Bip122KeyPair> generate() async {
+    _keyPair = await Bip122KeyPairFactory(blockchainId.reference)
+        .fromPrivateKeyString(privateKey);
+    return _keyPair;
+  }
+
+  @override
+  Future<String> signMessage(String message) async {
+    ECPrivateKey? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= WIF.fromString(privateKey).privkey;
+    return MessageSignature.sign(
+            key: secretKey,
+            message: message,
+            prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix)
+        .toString();
+  }
+}
+
+class Bip122PrivateKeyPairStrategyFactory
+    implements PrivateKeyPairStrategyFactory<Bip122KeyPair> {
+  final Bip122Reference reference;
+
+  Bip122PrivateKeyPairStrategyFactory(this.reference);
+
+  @override
+  PrivateKeyPairStrategy<Bip122KeyPair> createFromPrivateKeyString(
+      String privateKey) {
+    return Bip122PrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
+        reference, privateKey);
+  }
+}

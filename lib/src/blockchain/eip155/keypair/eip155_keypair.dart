@@ -10,10 +10,10 @@ import '../bip44/bip44.dart';
 import '../eip155_blockchain_id/eip155_blockchain_id.dart';
 import '../eip155_blockchain_id/eip155_blockchain_reference.dart';
 
-class Eip155KeyPair implements KeyPair<EthereumAddress, ExtendedKey> {
+class Eip155KeyPair implements KeyPair<EthereumAddress, EthPrivateKey> {
   final Eip155BlockchainId blockchainId;
   final EthereumAddress _publicKey;
-  final ExtendedKey? _privateKey;
+  final EthPrivateKey? _privateKey;
   late final KeyPairSigner _signer;
   late final KeyPairVerifier _verifier;
 
@@ -26,7 +26,7 @@ class Eip155KeyPair implements KeyPair<EthereumAddress, ExtendedKey> {
   }
 
   @override
-  Future<ExtendedKey?> extractSecretKey() async {
+  Future<EthPrivateKey?> extractSecretKey() async {
     if (_privateKey == null) {
       return null;
     }
@@ -54,11 +54,11 @@ class Eip155KeyPair implements KeyPair<EthereumAddress, ExtendedKey> {
 
   @override
   String get privateKey =>
-      (_privateKey == null) ? '' : _privateKey!.privateKeyHex();
+      (_privateKey == null) ? '' : bytesToHex(_privateKey!.privateKey);
 }
 
 class Eip155KeyPairFactory
-    implements KeyPairFactory<Eip155KeyPair, EthereumAddress, ExtendedKey> {
+    implements KeyPairFactory<Eip155KeyPair, EthereumAddress, EthPrivateKey> {
   final Eip155BlockchainId blockchainId;
   late final KeyPairGenerator<Eip155KeyPair> _generator;
 
@@ -71,7 +71,7 @@ class Eip155KeyPairFactory
   }
 
   @override
-  Future<Eip155KeyPair> fromPrivateKey(ExtendedKey privateKey) async {
+  Future<Eip155KeyPair> fromPrivateKey(EthPrivateKey privateKey) async {
     final EthereumAddress publicKey = _fromPrivateKey(privateKey).address;
     return Eip155KeyPair._(blockchainId.reference, publicKey, privateKey);
   }
@@ -86,7 +86,7 @@ class Eip155KeyPairFactory
   Future<Eip155KeyPair> fromPrivateKeyString(String privateKeyHex) async {
     final EthereumAddress publicKey = _fromPrivateKeyHex(privateKeyHex).address;
     return Eip155KeyPair._(blockchainId.reference, publicKey,
-        ExtendedKey.deserialize(privateKeyHex));
+        EthPrivateKey.fromHex(privateKeyHex));
   }
 
   @override
@@ -98,8 +98,8 @@ class Eip155KeyPairFactory
   void setGenerator(KeyPairGenerator<Eip155KeyPair> generator) =>
       _generator = generator;
 
-  Credentials _fromPrivateKey(ExtendedKey key) {
-    return EthPrivateKey.fromHex(key.privateKeyHex());
+  Credentials _fromPrivateKey(EthPrivateKey key) {
+    return key;
   }
 
   EthereumAddress _fromPublicKeyHex(String publicKeyHex) {
@@ -126,7 +126,7 @@ class Eip155SeedKeyPairStrategy implements SeedKeyPairStrategy<Eip155KeyPair> {
 
   @override
   Future<Eip155KeyPair> generate() async {
-    ExtendedKey extendedKey = _fromSeedAndIndex(_seed, _index);
+    EthPrivateKey extendedKey = _fromSeedAndIndex(_seed, _index);
     _keyPair =
         await Eip155KeyPairFactory(reference).fromPrivateKey(extendedKey);
     return _keyPair;
@@ -134,17 +134,17 @@ class Eip155SeedKeyPairStrategy implements SeedKeyPairStrategy<Eip155KeyPair> {
 
   @override
   Future<String> signMessage(String message) async {
-    ExtendedKey? secretKey = await _keyPair.extractSecretKey();
+    EthPrivateKey? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromSeedAndIndex(_seed, _index);
     return EthSigUtil.signPersonalMessage(
         message: hexToBytes(HEX.encode(message.codeUnits)),
-        privateKey: secretKey.privateKeyHex());
+        privateKey: bytesToHex(secretKey.privateKey));
   }
 
-  ExtendedKey _fromSeedAndIndex(Uint8List seed, int index) {
+  EthPrivateKey _fromSeedAndIndex(Uint8List seed, int index) {
     final Chain chain = Chain.seed(HEX.encode(seed));
     String path = Eip155DerivationPath(reference, addressIndex: index).path;
-    return chain.forPath(path);
+    return EthPrivateKey.fromHex(chain.forPath(path).privateKeyHex());
   }
 }
 
@@ -162,7 +162,50 @@ class Eip155SeedKeyPairStrategyFactory
   }
 }
 
+class Eip155PrivateKeyPairStrategy
+    implements PrivateKeyPairStrategy<Eip155KeyPair> {
+  final Eip155BlockchainId blockchainId;
+  final String privateKey;
+  late final Eip155KeyPair _keyPair;
 
+  Eip155PrivateKeyPairStrategy._(Eip155Reference reference, this.privateKey)
+      : blockchainId = Eip155BlockchainId(reference);
+
+  factory Eip155PrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
+      Eip155Reference reference, String privateKey) {
+    return Eip155PrivateKeyPairStrategy._(reference, privateKey);
+  }
+
+  @override
+  Future<Eip155KeyPair> generate() async {
+    _keyPair = await Eip155KeyPairFactory(blockchainId.reference)
+        .fromPrivateKeyString(privateKey);
+    return _keyPair;
+  }
+
+  @override
+  Future<String> signMessage(String message) async {
+    EthPrivateKey? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= EthPrivateKey.fromHex(privateKey);
+    return EthSigUtil.signPersonalMessage(
+        message: hexToBytes(HEX.encode(message.codeUnits)),
+        privateKey: privateKey);
+  }
+}
+
+class Eip155PrivateKeyPairStrategyFactory
+    implements PrivateKeyPairStrategyFactory<Eip155KeyPair> {
+  final Eip155Reference reference;
+
+  Eip155PrivateKeyPairStrategyFactory(this.reference);
+
+  @override
+  PrivateKeyPairStrategy<Eip155KeyPair> createFromPrivateKeyString(
+      String privateKey) {
+    return Eip155PrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
+        reference, privateKey);
+  }
+}
 // class Eip155SeedKeyPairGeneratorStrategy
 //     implements SeedKeyPairGeneratorStrategy<Eip155KeyPair> {
 //   final Eip155Reference reference;
@@ -180,7 +223,7 @@ class Eip155SeedKeyPairStrategyFactory
 //   Future<Eip155KeyPair> generate() async {
 //     final Chain chain = Chain.seed(HEX.encode(_seed));
 //     String path = Eip155DerivationPath(reference, addressIndex: _index).path;
-//     ExtendedKey extendedKey = chain.forPath(path);
+//     EthPrivateKey extendedKey = chain.forPath(path);
 //     return Eip155KeyPairFactory(reference).fromPrivateKey(extendedKey);
 //   }
 // }
@@ -211,7 +254,7 @@ class Eip155SeedKeyPairStrategyFactory
 
 //   @override
 //   Future<String> signMessage(String message) async {
-//     final ExtendedKey? secretKey = await _keyPair.extractSecretKey();
+//     final EthPrivateKey? secretKey = await _keyPair.extractSecretKey();
 //     if (secretKey == null) {
 //       throw Exception('Cannot sign message without secret key');
 //     }
