@@ -3,28 +3,97 @@ import 'dart:typed_data';
 import 'package:solana/base58.dart';
 import 'package:solana/solana.dart';
 import '../../../domain/common/keypair/keypair.dart';
+import '../../../domain/common/keypair/strategy/private_key_strategy.dart';
+import '../../../domain/common/keypair/strategy/seed_strategy.dart';
 import '../bip44/bip44.dart';
 import '../solana_blockchain_id/solana_blockchain_id.dart';
 import '../solana_blockchain_id/solana_blockchain_reference.dart';
 
-class SolanaKeyPair
-    implements KeyPair<Ed25519HDPublicKey, Ed25519HDKeyPairData> {
+typedef SolanaPublicKeyType = Ed25519HDPublicKey;
+
+typedef SolanaPrivateKeyType = Ed25519HDKeyPairData;
+
+typedef SolanaKeyPairGeneratorType = KeyPairGenerator<
+    SolanaPublicKeyType,
+    SolanaPrivateKeyType,
+    SolanaKeyPair,
+    SolanaKeyPairSigner,
+    SolanaKeyPairVerifier>;
+
+typedef SolanaKeyPairSignerType
+    = KeyPairSigner<SolanaPublicKeyType, SolanaPrivateKeyType>;
+
+typedef SolanaKeyPairVerifierType
+    = KeyPairVerifier<SolanaPublicKeyType, SolanaPrivateKeyType>;
+
+typedef SolanaKeyPairType = KeyPair<SolanaPublicKeyType, SolanaPrivateKeyType,
+    SolanaKeyPairSigner, SolanaKeyPairVerifier>;
+
+typedef SolanaKeyPairFactoryType = KeyPairFactory<
+    SolanaPublicKeyType,
+    SolanaPrivateKeyType,
+    SolanaKeyPair,
+    SolanaKeyPairSigner,
+    SolanaKeyPairVerifier,
+    SolanaKeyPairGenerator>;
+
+typedef SolanaSeedKeyPairStrategyType = SeedKeyPairStrategy<
+    SolanaPublicKeyType,
+    SolanaPrivateKeyType,
+    SolanaKeyPair,
+    SolanaKeyPairSigner,
+    SolanaKeyPairVerifier,
+    SolanaKeyPairGenerator>;
+
+typedef SolanaSeedKeyPairStrategyFactoryType = SeedKeyPairStrategyFactory<
+    SolanaPublicKeyType,
+    SolanaPrivateKeyType,
+    SolanaKeyPair,
+    SolanaKeyPairSigner,
+    SolanaKeyPairVerifier,
+    SolanaKeyPairGenerator,
+    SolanaSeedKeyPairStrategy>;
+
+typedef SolanaPrivateKeyPairStrategyType = PrivateKeyPairStrategy<
+    SolanaPublicKeyType,
+    SolanaPrivateKeyType,
+    SolanaKeyPair,
+    SolanaKeyPairSigner,
+    SolanaKeyPairVerifier,
+    SolanaKeyPairGenerator>;
+
+typedef SolanaPrivateKeyPairStrategyFactoryType = PrivateKeyPairStrategyFactory<
+    SolanaPublicKeyType,
+    SolanaPrivateKeyType,
+    SolanaKeyPair,
+    SolanaKeyPairSigner,
+    SolanaKeyPairVerifier,
+    SolanaKeyPairGenerator,
+    SolanaPrivateKeyPairStrategy>;
+
+abstract class SolanaKeyPairSigner extends SolanaKeyPairSignerType {}
+
+abstract class SolanaKeyPairVerifier extends SolanaKeyPairVerifierType {}
+
+abstract class SolanaKeyPairGenerator extends SolanaKeyPairGeneratorType {}
+
+class SolanaKeyPair implements SolanaKeyPairType {
   final SolanaBlockchainId blockchainId;
-  final Ed25519HDPublicKey _publicKey;
-  final Ed25519HDKeyPairData? _privateKey;
-  late final KeyPairSigner _signer;
-  late final KeyPairVerifier _verifier;
+  final SolanaPublicKeyType _publicKey;
+  final SolanaPrivateKeyType? _privateKey;
+  late final SolanaKeyPairSigner _signer;
+  late final SolanaKeyPairVerifier _verifier;
 
   SolanaKeyPair._(SolanaReference reference, this._publicKey, this._privateKey)
       : blockchainId = SolanaBlockchainId(reference);
 
   @override
-  Future<Ed25519HDPublicKey> extractPublicKey() async {
+  Future<SolanaPublicKeyType> extractPublicKey() async {
     return _publicKey;
   }
 
   @override
-  Future<Ed25519HDKeyPairData?> extractSecretKey() async {
+  Future<SolanaPrivateKeyType?> extractSecretKey() async {
     return _privateKey;
   }
 
@@ -34,15 +103,20 @@ class SolanaKeyPair
   }
 
   @override
+  Future<String> signTransaction(String message) async {
+    return _signer.signTransaction(message);
+  }
+
+  @override
   Future<bool> verify(String message, String signature) async {
     return _verifier.verify(message, signature);
   }
 
   @override
-  void setSigner(KeyPairSigner signer) => _signer = signer;
+  void setSigner(SolanaKeyPairSigner signer) => _signer = signer;
 
   @override
-  void setVerifier(KeyPairVerifier verifier) => _verifier = verifier;
+  void setVerifier(SolanaKeyPairVerifier verifier) => _verifier = verifier;
 
   @override
   String get publicKey => _publicKey.toBase58();
@@ -53,38 +127,35 @@ class SolanaKeyPair
       : base58encode(_privateKey!.bytes + _publicKey.bytes);
 }
 
-class SolanaKeyPairFactory
-    implements
-        KeyPairFactory<SolanaKeyPair, Ed25519HDPublicKey,
-            Ed25519HDKeyPairData> {
+class SolanaKeyPairFactory implements SolanaKeyPairFactoryType {
   final SolanaBlockchainId blockchainId;
-  late final KeyPairGenerator<SolanaKeyPair> _generator;
+  late final SolanaKeyPairGenerator _generator;
 
   SolanaKeyPairFactory(SolanaReference reference)
       : blockchainId = SolanaBlockchainId(reference);
 
   @override
-  Future<SolanaKeyPair> fromPublicKey(Ed25519HDPublicKey publicKey) async {
+  Future<SolanaKeyPair> fromPublicKey(SolanaPublicKeyType publicKey) async {
     return SolanaKeyPair._(blockchainId.reference, publicKey, null);
   }
 
   @override
-  Future<SolanaKeyPair> fromPrivateKey(Ed25519HDKeyPairData privateKey) async {
-    final Ed25519HDPublicKey publicKey = privateKey.publicKey;
+  Future<SolanaKeyPair> fromPrivateKey(SolanaPrivateKeyType privateKey) async {
+    final SolanaPublicKeyType publicKey = privateKey.publicKey;
     return SolanaKeyPair._(blockchainId.reference, publicKey, privateKey);
   }
 
   @override
   Future<SolanaKeyPair> fromPublicKeyString(String publicKey) async {
-    final Ed25519HDPublicKey publicKeyData = _fromPublicKeyBase58(publicKey);
+    final SolanaPublicKeyType publicKeyData = _fromPublicKeyBase58(publicKey);
     return SolanaKeyPair._(blockchainId.reference, publicKeyData, null);
   }
 
   @override
   Future<SolanaKeyPair> fromPrivateKeyString(String privateKey) async {
-    final Ed25519HDKeyPairData privateKeyData =
+    final SolanaPrivateKeyType privateKeyData =
         _fromPrivateKeyBase58(privateKey);
-    final Ed25519HDPublicKey publicKey = _fromPrivateKey(privateKeyData);
+    final SolanaPublicKeyType publicKey = _fromPrivateKey(privateKeyData);
     return SolanaKeyPair._(blockchainId.reference, publicKey, privateKeyData);
   }
 
@@ -94,25 +165,30 @@ class SolanaKeyPairFactory
   }
 
   @override
-  void setGenerator(KeyPairGenerator<SolanaKeyPair> generator) =>
-      _generator = generator;
+  void setGenerator(SolanaKeyPairGenerator generator) => _generator = generator;
 
-  Ed25519HDPublicKey _fromPrivateKey(Ed25519HDKeyPairData privateKey) {
+  SolanaPublicKeyType _fromPrivateKey(SolanaPrivateKeyType privateKey) {
     return privateKey.publicKey;
   }
 
-  Ed25519HDPublicKey _fromPublicKeyBase58(String publicKey) {
-    return Ed25519HDPublicKey.fromBase58(publicKey);
+  SolanaPublicKeyType _fromPublicKeyBase58(String publicKey) {
+    return SolanaPublicKeyType.fromBase58(publicKey);
   }
 
-  Ed25519HDKeyPairData _fromPrivateKeyBase58(String privateKey) {
+  SolanaPrivateKeyType _fromPrivateKeyBase58(String privateKey) {
     final List<int> prKey = base58decode(privateKey);
-    final Ed25519HDPublicKey publicKey = Ed25519HDPublicKey(prKey.sublist(32));
-    return Ed25519HDKeyPairData(prKey.sublist(0, 32), publicKey: publicKey);
+    final SolanaPublicKeyType publicKey =
+        SolanaPublicKeyType(prKey.sublist(32));
+    return SolanaPrivateKeyType(prKey.sublist(0, 32), publicKey: publicKey);
   }
 }
 
-class SolanaSeedKeyPairStrategy implements SeedKeyPairStrategy<SolanaKeyPair> {
+class SolanaSeedKeyPairStrategy
+    implements
+        SolanaSeedKeyPairStrategyType,
+        SolanaKeyPairGenerator,
+        SolanaKeyPairSigner,
+        SolanaKeyPairVerifier {
   final SolanaReference reference;
   final Uint8List _seed;
   final int _index;
@@ -135,11 +211,21 @@ class SolanaSeedKeyPairStrategy implements SeedKeyPairStrategy<SolanaKeyPair> {
 
   @override
   Future<String> signMessage(String message) async {
-    Ed25519HDKeyPairData? secretKey = await _keyPair.extractSecretKey();
+    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
     final Future<Ed25519HDKeyPair> signer =
         Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
     return (await (await signer).sign(message.codeUnits)).toBase58();
+  }
+
+  @override
+  Future<String> signTransaction(String message) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> verify(String message, String signature) async {
+    throw UnimplementedError();
   }
 
   Future<Ed25519HDKeyPair> _fromSeedAndIndex(Uint8List seed, int index) async {
@@ -149,21 +235,24 @@ class SolanaSeedKeyPairStrategy implements SeedKeyPairStrategy<SolanaKeyPair> {
 }
 
 class SolanaSeedKeyPairStrategyFactory
-    implements SeedKeyPairStrategyFactory<SolanaKeyPair> {
+    implements SolanaSeedKeyPairStrategyFactoryType {
   final SolanaReference reference;
 
   SolanaSeedKeyPairStrategyFactory(this.reference);
 
   @override
-  SeedKeyPairStrategy<SolanaKeyPair> createFromSeedAndIndex(
-      Uint8List seed, int index) {
+  SolanaSeedKeyPairStrategy createFromSeedAndIndex(Uint8List seed, int index) {
     return SolanaSeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
         reference, seed, index);
   }
 }
 
 class SolanaPrivateKeyPairStrategy
-    implements PrivateKeyPairStrategy<SolanaKeyPair> {
+    implements
+        SolanaPrivateKeyPairStrategyType,
+        SolanaKeyPairGenerator,
+        SolanaKeyPairSigner,
+        SolanaKeyPairVerifier {
   final SolanaBlockchainId blockchainId;
   final String privateKey;
   late final SolanaKeyPair _keyPair;
@@ -185,29 +274,39 @@ class SolanaPrivateKeyPairStrategy
 
   @override
   Future<String> signMessage(String message) async {
-    Ed25519HDKeyPairData? secretKey = await _keyPair.extractSecretKey();
+    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromPrivateKeyBase58(privateKey);
     final Future<Ed25519HDKeyPair> signer =
         Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
     return (await (await signer).sign(message.codeUnits)).toBase58();
   }
 
-  Ed25519HDKeyPairData _fromPrivateKeyBase58(String privateKey) {
+  @override
+  Future<String> signTransaction(String message) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> verify(String message, String signature) async {
+    throw UnimplementedError();
+  }
+
+  SolanaPrivateKeyType _fromPrivateKeyBase58(String privateKey) {
     final List<int> prKey = base58decode(privateKey);
-    final Ed25519HDPublicKey publicKey = Ed25519HDPublicKey(prKey.sublist(32));
-    return Ed25519HDKeyPairData(prKey.sublist(0, 32), publicKey: publicKey);
+    final SolanaPublicKeyType publicKey =
+        SolanaPublicKeyType(prKey.sublist(32));
+    return SolanaPrivateKeyType(prKey.sublist(0, 32), publicKey: publicKey);
   }
 }
 
 class SolanaPrivateKeyPairStrategyFactory
-    implements PrivateKeyPairStrategyFactory<SolanaKeyPair> {
+    implements SolanaPrivateKeyPairStrategyFactoryType {
   final SolanaReference reference;
 
   SolanaPrivateKeyPairStrategyFactory(this.reference);
 
   @override
-  PrivateKeyPairStrategy<SolanaKeyPair> createFromPrivateKeyString(
-      String privateKey) {
+  SolanaPrivateKeyPairStrategy createFromPrivateKeyString(String privateKey) {
     return SolanaPrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
         reference, privateKey);
   }

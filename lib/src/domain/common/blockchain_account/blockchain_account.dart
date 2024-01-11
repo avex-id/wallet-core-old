@@ -26,6 +26,11 @@ abstract class KeyPairBlockchainAccountStrategy<U extends BlockchainAccount>
     implements BlockchainAccountGenerator<U>, BlockchainAccountAuthenticator {}
 
 abstract class KeyPairBlockchainAccountStrategyFactory<
-    U extends BlockchainAccount, V extends KeyPair> {
-  KeyPairBlockchainAccountStrategy<U> createFromKeyPair(V keyPair);
+    Account extends BlockchainAccount,
+    PublicKey,
+    PrivateKey,
+    Key extends KeyPair<PublicKey, PrivateKey, Signer, Verifier>,
+    Signer extends KeyPairSigner<PublicKey, PrivateKey>,
+    Verifier extends KeyPairVerifier<PublicKey, PrivateKey>> {
+  KeyPairBlockchainAccountStrategy<Account> createFromKeyPair(Key keyPair);
 }

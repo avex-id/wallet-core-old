@@ -85,8 +85,13 @@ class SolanaKeyPairBlockchainAccountStrategy
 
 class SolanaKeyPairBlockchainAccountStrategyFactory
     implements
-        KeyPairBlockchainAccountStrategyFactory<SolanaBlockchainAccount,
-            SolanaKeyPair> {
+        KeyPairBlockchainAccountStrategyFactory<
+            SolanaBlockchainAccount,
+            Ed25519HDPublicKey,
+            Ed25519HDKeyPairData,
+            SolanaKeyPair,
+            SolanaKeyPairSigner,
+            SolanaKeyPairVerifier> {
   @override
   KeyPairBlockchainAccountStrategy<SolanaBlockchainAccount> createFromKeyPair(
       SolanaKeyPair keyPair) {

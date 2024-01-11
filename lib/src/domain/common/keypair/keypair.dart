@@ -1,62 +1,59 @@
-import 'dart:typed_data';
-
-abstract class KeyPairSigner {
+abstract class KeyPairSigner<PublicKeyType, PrivateKeyType> {
   Future<String> signMessage(String message);
-  // Future<String> signTransaction(String message);
+  Future<String> signTransaction(String message);
 }
 
-abstract class KeyPairVerifier {
+abstract class KeyPairVerifier<PublicKeyType, PrivateKeyType> {
   Future<bool> verify(String message, String signature);
 }
 
-abstract class KeyPairGenerator<U extends KeyPair> {
-  Future<U> generate();
+abstract class KeyPairGenerator<
+    PublicKeyType,
+    PrivateKeyType,
+    KeyPairType extends KeyPair<PublicKeyType, PrivateKeyType,
+        KeyPairSignerType, KeyPairVerifierType>,
+    KeyPairSignerType extends KeyPairSigner<PublicKeyType, PrivateKeyType>,
+    KeyPairVerifierType extends KeyPairVerifier<PublicKeyType,
+        PrivateKeyType>> {
+  Future<KeyPairType> generate();
 }
 
-abstract class KeyPair<U, V> implements KeyPairSigner, KeyPairVerifier {
-  Future<U> extractPublicKey();
-  Future<V?> extractSecretKey();
+abstract class KeyPair<
+        PublicKeyType,
+        PrivateKeyType,
+        KeyPairSignerType extends KeyPairSigner<PublicKeyType, PrivateKeyType>,
+        KeyPairVerifierType extends KeyPairVerifier<PublicKeyType,
+            PrivateKeyType>>
+    implements
+        KeyPairSigner<PublicKeyType, PrivateKeyType>,
+        KeyPairVerifier<PublicKeyType, PrivateKeyType> {
+  Future<PublicKeyType> extractPublicKey();
+  Future<PrivateKeyType?> extractSecretKey();
   String get publicKey;
   String get privateKey;
-  void setSigner(KeyPairSigner signer);
-  void setVerifier(KeyPairVerifier verifier);
+  void setSigner(KeyPairSignerType signer);
+  void setVerifier(KeyPairVerifierType verifier);
 }
 
-abstract class KeyPairFactory<T extends KeyPair<U, V>, U, V>
-    implements KeyPairGenerator<T> {
-  Future<T> fromPrivateKey(V privateKey);
-  Future<T> fromPublicKey(U publicKey);
-  Future<T> fromPrivateKeyString(String privateKey);
-  Future<T> fromPublicKeyString(String privateKey);
-  void setGenerator(KeyPairGenerator<T> generator);
+abstract class KeyPairFactory<
+        PublicKeyType,
+        PrivateKeyType,
+        KeyPairType extends KeyPair<PublicKeyType, PrivateKeyType,
+            KeyPairSignerType, KeyPairVerifierType>,
+        KeyPairSignerType extends KeyPairSigner<PublicKeyType, PrivateKeyType>,
+        KeyPairVerifierType extends KeyPairVerifier<PublicKeyType, PrivateKeyType>,
+        KeyPairGeneratorType extends KeyPairGenerator<
+            PublicKeyType,
+            PrivateKeyType,
+            KeyPairType,
+            KeyPairSignerType,
+            KeyPairVerifierType>>
+    implements
+        KeyPairGenerator<PublicKeyType, PrivateKeyType, KeyPairType,
+            KeyPairSignerType, KeyPairVerifierType> {
+  Future<KeyPairType> fromPrivateKey(PrivateKeyType privateKey);
+  Future<KeyPairType> fromPrivateKeyString(String privateKey);
+  Future<KeyPairType> fromPublicKey(PublicKeyType publicKey);
+  Future<KeyPairType> fromPublicKeyString(String privateKey);
+  void setGenerator(KeyPairGeneratorType generator);
 }
-
-abstract class SeedKeyPairStrategy<U extends KeyPair>
-    implements KeyPairGenerator<U>, KeyPairSigner {}
-
-abstract class SeedKeyPairStrategyFactory<U extends KeyPair> {
-  SeedKeyPairStrategy<U> createFromSeedAndIndex(Uint8List seed, int index);
-}
-
-abstract class PrivateKeyPairStrategy<U extends KeyPair>
-    implements KeyPairGenerator<U>, KeyPairSigner {}
-
-abstract class PrivateKeyPairStrategyFactory<U extends KeyPair> {
-  PrivateKeyPairStrategy<U> createFromPrivateKeyString(String privateKey);
-}
-
-
-// abstract class SeedKeyPairGeneratorStrategy<U extends KeyPair>
-//     implements KeyPairGenerator<U> {}
-
-// abstract class SeedKeyPairGeneratorStrategyFactory<U extends KeyPair> {
-//   SeedKeyPairGeneratorStrategy<U> createFromSeedAndIndex(
-//       Uint8List seed, int index);
-// }
-
-// abstract class KeyPairSignerStrategy<U extends KeyPair>
-//     implements KeyPairSigner {}
-
-// abstract class KeyPairSignerStrategyFactory<U extends KeyPair> {
-//   KeyPairSignerStrategy<U> createFromKeyPair(U keyPair);
-// }

@@ -89,7 +89,11 @@ class Bip122KeyPairBlockchainAccountStrategy
 class Bip122KeyPairBlockchainAccountStrategyFactory
     implements
         KeyPairBlockchainAccountStrategyFactory<Bip122BlockchainAccount,
-            Bip122KeyPair> {
+            ECPublicKey,
+            ECPrivateKey,
+            Bip122KeyPair,
+            Bip122KeyPairSigner,
+            Bip122KeyPairVerifier> {
   @override
   KeyPairBlockchainAccountStrategy<Bip122BlockchainAccount> createFromKeyPair(
       Bip122KeyPair keyPair) {

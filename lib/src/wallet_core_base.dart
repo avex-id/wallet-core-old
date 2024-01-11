@@ -67,6 +67,9 @@ export 'producers/keypair/keypair_factory_producer.dart';
 
 export 'domain/common/keypair/keypair.dart';
 
+export 'domain/common/keypair/strategy/private_key_strategy.dart';
+export 'domain/common/keypair/strategy/seed_strategy.dart';
+
 export 'blockchain/solana/keypair/solana_keypair.dart';
 
 export 'blockchain/eip155/keypair/eip155_keypair.dart';

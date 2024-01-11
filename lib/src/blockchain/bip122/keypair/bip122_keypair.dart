@@ -1,14 +1,84 @@
 import 'dart:typed_data';
 import 'package:coinlib/coinlib.dart';
 import '../../../domain/common/keypair/keypair.dart';
+import '../../../domain/common/keypair/strategy/private_key_strategy.dart';
+import '../../../domain/common/keypair/strategy/seed_strategy.dart';
 import '../bip122_blockchain_id/bip122_blockchain_id.dart';
 import '../bip122_blockchain_id/bip122_blockchain_reference.dart';
 import '../bip44/bip44.dart';
 
-class Bip122KeyPair implements KeyPair<ECPublicKey, ECPrivateKey> {
+typedef Bip122PublicKeyType = ECPublicKey;
+
+typedef Bip122PrivateKeyType = ECPrivateKey;
+
+typedef Bip122KeyPairGeneratorType = KeyPairGenerator<
+    Bip122PublicKeyType,
+    Bip122PrivateKeyType,
+    Bip122KeyPair,
+    Bip122KeyPairSigner,
+    Bip122KeyPairVerifier>;
+
+typedef Bip122KeyPairSignerType
+    = KeyPairSigner<Bip122PublicKeyType, Bip122PrivateKeyType>;
+
+typedef Bip122KeyPairVerifierType
+    = KeyPairVerifier<Bip122PublicKeyType, Bip122PrivateKeyType>;
+
+typedef Bip122KeyPairType = KeyPair<Bip122PublicKeyType, Bip122PrivateKeyType,
+    Bip122KeyPairSigner, Bip122KeyPairVerifier>;
+
+typedef Bip122KeyPairFactoryType = KeyPairFactory<
+    Bip122PublicKeyType,
+    Bip122PrivateKeyType,
+    Bip122KeyPair,
+    Bip122KeyPairSigner,
+    Bip122KeyPairVerifier,
+    Bip122KeyPairGenerator>;
+
+typedef Bip122SeedKeyPairStrategyType = SeedKeyPairStrategy<
+    Bip122PublicKeyType,
+    Bip122PrivateKeyType,
+    Bip122KeyPair,
+    Bip122KeyPairSigner,
+    Bip122KeyPairVerifier,
+    Bip122KeyPairGenerator>;
+
+typedef Bip122SeedKeyPairStrategyFactoryType = SeedKeyPairStrategyFactory<
+    Bip122PublicKeyType,
+    Bip122PrivateKeyType,
+    Bip122KeyPair,
+    Bip122KeyPairSigner,
+    Bip122KeyPairVerifier,
+    Bip122KeyPairGenerator,
+    Bip122SeedKeyPairStrategy>;
+
+typedef Bip122PrivateKeyPairStrategyType = PrivateKeyPairStrategy<
+    Bip122PublicKeyType,
+    Bip122PrivateKeyType,
+    Bip122KeyPair,
+    Bip122KeyPairSigner,
+    Bip122KeyPairVerifier,
+    Bip122KeyPairGenerator>;
+
+typedef Bip122PrivateKeyPairStrategyFactoryType = PrivateKeyPairStrategyFactory<
+    Bip122PublicKeyType,
+    Bip122PrivateKeyType,
+    Bip122KeyPair,
+    Bip122KeyPairSigner,
+    Bip122KeyPairVerifier,
+    Bip122KeyPairGenerator,
+    Bip122PrivateKeyPairStrategy>;
+
+abstract class Bip122KeyPairSigner extends Bip122KeyPairSignerType {}
+
+abstract class Bip122KeyPairVerifier extends Bip122KeyPairVerifierType {}
+
+abstract class Bip122KeyPairGenerator extends Bip122KeyPairGeneratorType {}
+
+class Bip122KeyPair implements Bip122KeyPairType {
   final Bip122BlockchainId blockchainId;
-  final ECPublicKey _publicKey;
-  final ECPrivateKey? _privateKey;
+  final Bip122PublicKeyType _publicKey;
+  final Bip122PrivateKeyType? _privateKey;
   late final KeyPairSigner _signer;
   late final KeyPairVerifier _verifier;
 
@@ -16,18 +86,23 @@ class Bip122KeyPair implements KeyPair<ECPublicKey, ECPrivateKey> {
       : blockchainId = Bip122BlockchainId(reference);
 
   @override
-  Future<ECPublicKey> extractPublicKey() async {
+  Future<Bip122PublicKeyType> extractPublicKey() async {
     return _publicKey;
   }
 
   @override
-  Future<ECPrivateKey?> extractSecretKey() async {
+  Future<Bip122PrivateKeyType?> extractSecretKey() async {
     return _privateKey;
   }
 
   @override
   Future<String> signMessage(String message) async {
     return _signer.signMessage(message);
+  }
+
+  @override
+  Future<String> signTransaction(String message) async {
+    return _signer.signTransaction(message);
   }
 
   @override
@@ -53,28 +128,27 @@ class Bip122KeyPair implements KeyPair<ECPublicKey, ECPrivateKey> {
           .toString();
 }
 
-class Bip122KeyPairFactory
-    implements KeyPairFactory<Bip122KeyPair, ECPublicKey, ECPrivateKey> {
+class Bip122KeyPairFactory implements Bip122KeyPairFactoryType {
   final Bip122BlockchainId blockchainId;
-  late final KeyPairGenerator<Bip122KeyPair> _generator;
+  late final Bip122KeyPairGenerator _generator;
 
   Bip122KeyPairFactory(Bip122Reference reference)
       : blockchainId = Bip122BlockchainId(reference);
 
   @override
-  Future<Bip122KeyPair> fromPrivateKey(ECPrivateKey privateKey) async {
-    final ECPublicKey publicKey = privateKey.pubkey;
+  Future<Bip122KeyPair> fromPrivateKey(Bip122PrivateKeyType privateKey) async {
+    final Bip122PublicKeyType publicKey = privateKey.pubkey;
     return Bip122KeyPair._(blockchainId.reference, publicKey, privateKey);
   }
 
   @override
-  Future<Bip122KeyPair> fromPublicKey(ECPublicKey publicKey) async {
+  Future<Bip122KeyPair> fromPublicKey(Bip122PublicKeyType publicKey) async {
     return Bip122KeyPair._(blockchainId.reference, publicKey, null);
   }
 
   @override
   Future<Bip122KeyPair> fromPublicKeyString(String publicKey) async {
-    final ECPublicKey ecPublicKey = _fromPublicKeyString(publicKey);
+    final Bip122PublicKeyType ecPublicKey = _fromPublicKeyString(publicKey);
     return Bip122KeyPair._(blockchainId.reference, ecPublicKey, null);
   }
 
@@ -82,7 +156,7 @@ class Bip122KeyPairFactory
   Future<Bip122KeyPair> fromPrivateKeyString(String privateKey) async {
     final WIF wif = _fromPrivateKeyString(
         privateKey, blockchainId.reference.networkParams.wifPrefix);
-    final ECPublicKey publicKey = _fromPrivateKey(wif);
+    final Bip122PublicKeyType publicKey = _fromPrivateKey(wif);
     return Bip122KeyPair._(blockchainId.reference, publicKey, wif.privkey);
   }
 
@@ -92,15 +166,14 @@ class Bip122KeyPairFactory
   }
 
   @override
-  void setGenerator(KeyPairGenerator<Bip122KeyPair> generator) =>
-      _generator = generator;
+  void setGenerator(Bip122KeyPairGenerator generator) => _generator = generator;
 
-  ECPublicKey _fromPrivateKey(WIF wif) {
+  Bip122PublicKeyType _fromPrivateKey(WIF wif) {
     return wif.privkey.pubkey;
   }
 
-  ECPublicKey _fromPublicKeyString(String publicKey) {
-    return ECPublicKey.fromHex(publicKey);
+  Bip122PublicKeyType _fromPublicKeyString(String publicKey) {
+    return Bip122PublicKeyType.fromHex(publicKey);
   }
 
   WIF _fromPrivateKeyString(String privateKey, int version) {
@@ -108,7 +181,12 @@ class Bip122KeyPairFactory
   }
 }
 
-class Bip122SeedKeyPairStrategy implements SeedKeyPairStrategy<Bip122KeyPair> {
+class Bip122SeedKeyPairStrategy
+    implements
+        Bip122SeedKeyPairStrategyType,
+        Bip122KeyPairGenerator,
+        Bip122KeyPairSigner,
+        Bip122KeyPairVerifier {
   final Bip122Reference reference;
   final Uint8List _seed;
   final int _index;
@@ -131,13 +209,23 @@ class Bip122SeedKeyPairStrategy implements SeedKeyPairStrategy<Bip122KeyPair> {
 
   @override
   Future<String> signMessage(String message) async {
-    ECPrivateKey? secretKey = await _keyPair.extractSecretKey();
+    Bip122PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromSeedAndIndex(_seed, _index).privateKey;
     return MessageSignature.sign(
             key: secretKey,
             message: message,
             prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix)
         .toString();
+  }
+
+  @override
+  Future<String> signTransaction(String message) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> verify(String message, String signature) async {
+    throw UnimplementedError();
   }
 
   HDPrivateKey _fromSeedAndIndex(Uint8List seed, int index) {
@@ -148,21 +236,24 @@ class Bip122SeedKeyPairStrategy implements SeedKeyPairStrategy<Bip122KeyPair> {
 }
 
 class Bip122SeedKeyPairStrategyFactory
-    implements SeedKeyPairStrategyFactory<Bip122KeyPair> {
+    implements Bip122SeedKeyPairStrategyFactoryType {
   final Bip122Reference reference;
 
   Bip122SeedKeyPairStrategyFactory(this.reference);
 
   @override
-  SeedKeyPairStrategy<Bip122KeyPair> createFromSeedAndIndex(
-      Uint8List seed, int index) {
+  Bip122SeedKeyPairStrategy createFromSeedAndIndex(Uint8List seed, int index) {
     return Bip122SeedKeyPairStrategy.generateKeyPairFromSeedAndIndex(
         reference, seed, index);
   }
 }
 
 class Bip122PrivateKeyPairStrategy
-    implements PrivateKeyPairStrategy<Bip122KeyPair> {
+    implements
+        Bip122PrivateKeyPairStrategyType,
+        Bip122KeyPairGenerator,
+        Bip122KeyPairSigner,
+        Bip122KeyPairVerifier {
   final Bip122BlockchainId blockchainId;
   final String privateKey;
   late final Bip122KeyPair _keyPair;
@@ -184,7 +275,7 @@ class Bip122PrivateKeyPairStrategy
 
   @override
   Future<String> signMessage(String message) async {
-    ECPrivateKey? secretKey = await _keyPair.extractSecretKey();
+    Bip122PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= WIF.fromString(privateKey).privkey;
     return MessageSignature.sign(
             key: secretKey,
@@ -192,17 +283,26 @@ class Bip122PrivateKeyPairStrategy
             prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix)
         .toString();
   }
+
+  @override
+  Future<String> signTransaction(String message) async {
+    throw UnimplementedError();
+  }
+
+  @override
+  Future<bool> verify(String message, String signature) async {
+    throw UnimplementedError();
+  }
 }
 
 class Bip122PrivateKeyPairStrategyFactory
-    implements PrivateKeyPairStrategyFactory<Bip122KeyPair> {
+    implements Bip122PrivateKeyPairStrategyFactoryType {
   final Bip122Reference reference;
 
   Bip122PrivateKeyPairStrategyFactory(this.reference);
 
   @override
-  PrivateKeyPairStrategy<Bip122KeyPair> createFromPrivateKeyString(
-      String privateKey) {
+  Bip122PrivateKeyPairStrategy createFromPrivateKeyString(String privateKey) {
     return Bip122PrivateKeyPairStrategy.generateKeyPairFromPrivateKeyString(
         reference, privateKey);
   }

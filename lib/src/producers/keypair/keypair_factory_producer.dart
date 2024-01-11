@@ -6,7 +6,8 @@ import '../../blockchain/eip155/keypair/eip155_keypair.dart';
 import '../../blockchain/solana/solana_blockchain_id/solana_blockchain_reference.dart';
 import '../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 import '../../domain/common/keypair/keypair.dart';
-
+import '../../domain/common/keypair/strategy/private_key_strategy.dart';
+import '../../domain/common/keypair/strategy/seed_strategy.dart';
 class KeyPairFactoryProducer {
   static KeyPairFactory getFactory(BlockchainReference reference) {
     if (reference is Eip155Reference) {

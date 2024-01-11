@@ -86,8 +86,13 @@ class Eip155KeyPairBlockchainAccountStrategy
 
 class Eip155KeyPairBlockchainAccountStrategyFactory
     implements
-        KeyPairBlockchainAccountStrategyFactory<Eip155BlockchainAccount,
-            Eip155KeyPair> {
+        KeyPairBlockchainAccountStrategyFactory<
+            Eip155BlockchainAccount,
+            EthereumAddress,
+            EthPrivateKey,
+            Eip155KeyPair,
+            Eip155KeyPairSigner,
+            Eip155KeyPairVerifier> {
   @override
   KeyPairBlockchainAccountStrategy<Eip155BlockchainAccount> createFromKeyPair(
       Eip155KeyPair keyPair) {
