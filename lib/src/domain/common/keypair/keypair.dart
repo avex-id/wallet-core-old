@@ -1,6 +1,6 @@
 abstract class KeyPairSigner<PublicKeyType, PrivateKeyType> {
   Future<String> signMessage(String message);
-  Future<String> signTransaction(String message);
+  // Future<String> signTransaction(String message);
 }
 
 abstract class KeyPairVerifier<PublicKeyType, PrivateKeyType> {

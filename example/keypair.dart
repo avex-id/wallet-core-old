@@ -9,8 +9,8 @@ const toBeSignedMessage = "ecb969e2-d688-4cdd-82d7-7f94cb7f6f02";
 // Blockchain ID # CAIP-2 Format https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
 final List<BlockchainId> blockchainIds = [
   Eip155BlockchainId(Eip155Reference.ethereumMainnet),
-  // SolanaBlockchainId(SolanaReference.solanaMainnet),
-  // Bip122BlockchainId(Bip122Reference.bitcoinMainnet),
+  SolanaBlockchainId(SolanaReference.solanaMainnet),
+  Bip122BlockchainId(Bip122Reference.bitcoinMainnet),
 ];
 
 Future<void> main() async {
@@ -22,12 +22,15 @@ Future<void> main() async {
       : Mnemonic.fromString(Platform.environment['MNEMONIC_PHRASE']!);
   print("Mnemonic: $mnemonic\n");
 
-  // Get Eip155 Private Key
-  final eip155PrivateKey = Platform.environment['EIP155_PRIVATE_KEY'];
-  if (eip155PrivateKey == null) {
-    print("EIP155_PRIVATE_KEY not set");
-   return;
-  }
+  // // Get Eip155 Private Key
+  // final eip155PrivateKey = Platform.environment['EIP155_PRIVATE_KEY'];
+  // final bip122PrivateKey = Platform.environment['BIP122_PRIVATE_KEY'];
+  // final solanaPrivateKey = Platform.environment['SOLANA_PRIVATE_KEY'];
+  // final privateKey = bip122PrivateKey;
+  // if (privateKey == null) {
+  //   print("EIP155_PRIVATE_KEY not set");
+  //  return;
+  // }
 
   // Generate secret shares
   final secretShares = ShamirSecretManager(minimum: 2, shares: 3)
@@ -39,20 +42,19 @@ Future<void> main() async {
 
   for (var blockchainId in blockchainIds) {
     // Generate KeyPair
-    // SeedKeyPairStrategy seedStrategy =
-    //     SeedKeyPairStrategyProducer.getFactory(blockchainId.reference)
-    //         .createFromSeedAndIndex(mnemonic.toSeed, 0);
+    SeedKeyPairStrategy seedStrategy =
+        SeedKeyPairStrategyProducer.getFactory(blockchainId.reference)
+            .createFromSeedAndIndex(mnemonic.toSeed, 0);
 
-    PrivateKeyPairStrategy privateKeyStrategy =
-        PrivateKeyPairStrategyProducer.getFactory(blockchainId.reference)
-            .createFromPrivateKeyString(eip155PrivateKey);
-            
+    // PrivateKeyPairStrategy privateKeyStrategy =
+    //     PrivateKeyPairStrategyProducer.getFactory(blockchainId.reference)
+    //         .createFromPrivateKeyString(privateKey);
+
     final keyPairFactory =
         KeyPairFactoryProducer.getFactory(blockchainId.reference)
-          ..setGenerator(privateKeyStrategy);
+          ..setGenerator(seedStrategy);
     final keyPair = await keyPairFactory.generate();
-    keyPair.setSigner(privateKeyStrategy);
-
+    keyPair.setSigner(seedStrategy);
     // Generate Blockchain Account
     final keyPairStrategy = KeyPairBlockchainAccountStrategyProducer.getFactory(
             blockchainId.reference)
@@ -61,12 +63,12 @@ Future<void> main() async {
         BlockchainAccountFactoryProducer.getFactory(blockchainId.reference)
           ..setGenerator(keyPairStrategy);
     final account = await accountFactory.generate();
-    account.setAuthenticator(keyPairStrategy);
+    account.setAccountSigner(keyPairStrategy);
     print(
         "${account.blockchainAccountId.blockchainId.reference.name} Account: ${account.blockchainAccountId.address}");
     print(
         "Public Key: ${keyPair.publicKey}\nPrivate Key: ${keyPair.privateKey}");
-    final signedData = await account.authenticate(toBeSignedMessage);
+    final signedData = await account.signMessage(toBeSignedMessage);
     print("Signed Hash for message: $toBeSignedMessage: $signedData\n");
   }
 }

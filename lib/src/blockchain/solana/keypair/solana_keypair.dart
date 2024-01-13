@@ -1,6 +1,7 @@
 import 'dart:typed_data';
 
 import 'package:solana/base58.dart';
+import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
 import '../../../domain/common/keypair/keypair.dart';
 import '../../../domain/common/keypair/strategy/private_key_strategy.dart';
@@ -71,13 +72,18 @@ typedef SolanaPrivateKeyPairStrategyFactoryType = PrivateKeyPairStrategyFactory<
     SolanaKeyPairGenerator,
     SolanaPrivateKeyPairStrategy>;
 
-abstract class SolanaKeyPairSigner extends SolanaKeyPairSignerType {}
+abstract class SolanaKeyPairSigner extends SolanaKeyPairSignerType {
+  Future<String> personalSign(String message);
+  Future<String> signCompiledMessage(CompiledMessage message);
+  Future<SignedTx> signCompiledMessageForTransaction(CompiledMessage message);
+}
 
 abstract class SolanaKeyPairVerifier extends SolanaKeyPairVerifierType {}
 
 abstract class SolanaKeyPairGenerator extends SolanaKeyPairGeneratorType {}
 
-class SolanaKeyPair implements SolanaKeyPairType {
+class SolanaKeyPair
+    implements SolanaKeyPairType, SolanaKeyPairSigner, SolanaKeyPairVerifier {
   final SolanaBlockchainId blockchainId;
   final SolanaPublicKeyType _publicKey;
   final SolanaPrivateKeyType? _privateKey;
@@ -103,9 +109,24 @@ class SolanaKeyPair implements SolanaKeyPairType {
   }
 
   @override
-  Future<String> signTransaction(String message) async {
-    return _signer.signTransaction(message);
+  Future<String> personalSign(String message) async {
+    return _signer.signMessage(message);
   }
+
+  @override
+  Future<String> signCompiledMessage(CompiledMessage message) async {
+    return _signer.signCompiledMessage(message);
+  }
+
+  @override
+  Future<SignedTx> signCompiledMessageForTransaction(
+      CompiledMessage message) async {
+    return _signer.signCompiledMessageForTransaction(message);
+  }
+  // @override
+  // Future<String> signTransaction(String message) async {
+  //   return _signer.signTransaction(message);
+  // }
 
   @override
   Future<bool> verify(String message, String signature) async {
@@ -201,6 +222,7 @@ class SolanaSeedKeyPairStrategy
     return SolanaSeedKeyPairStrategy._(reference, seed, index);
   }
 
+  // * Generation
   @override
   Future<SolanaKeyPair> generate() async {
     Ed25519HDKeyPair key = await _fromSeedAndIndex(_seed, _index);
@@ -209,8 +231,14 @@ class SolanaSeedKeyPairStrategy
     return _keyPair;
   }
 
+  // * Signature
   @override
   Future<String> signMessage(String message) async {
+    return personalSign(message);
+  }
+
+  @override
+  Future<String> personalSign(String message) async {
     SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
     final Future<Ed25519HDKeyPair> signer =
@@ -218,11 +246,32 @@ class SolanaSeedKeyPairStrategy
     return (await (await signer).sign(message.codeUnits)).toBase58();
   }
 
+  // * Transaction
   @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
+  Future<String> signCompiledMessage(CompiledMessage message) async {
+    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
+    final Future<Ed25519HDKeyPair> signer =
+        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+    return (await (await signer).sign(message.toByteArray())).toBase58();
   }
 
+  @override
+  Future<SignedTx> signCompiledMessageForTransaction(
+      CompiledMessage message) async {
+    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
+    final Future<Ed25519HDKeyPair> signer =
+        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+    final signedTransaction =
+        (await (await signer).sign(message.toByteArray()));
+    return SignedTx(
+      signatures: [signedTransaction],
+      compiledMessage: message,
+    );
+  }
+
+  // * Verification
   @override
   Future<bool> verify(String message, String signature) async {
     throw UnimplementedError();
@@ -265,6 +314,7 @@ class SolanaPrivateKeyPairStrategy
     return SolanaPrivateKeyPairStrategy._(reference, privateKey);
   }
 
+  // * Generation
   @override
   Future<SolanaKeyPair> generate() async {
     _keyPair = await SolanaKeyPairFactory(blockchainId.reference)
@@ -272,8 +322,14 @@ class SolanaPrivateKeyPairStrategy
     return _keyPair;
   }
 
+  // * Signature
   @override
   Future<String> signMessage(String message) async {
+    return personalSign(message);
+  }
+
+  @override
+  Future<String> personalSign(String message) async {
     SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromPrivateKeyBase58(privateKey);
     final Future<Ed25519HDKeyPair> signer =
@@ -281,11 +337,37 @@ class SolanaPrivateKeyPairStrategy
     return (await (await signer).sign(message.codeUnits)).toBase58();
   }
 
+  // * Transaction
   @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
+  Future<String> signCompiledMessage(CompiledMessage message) async {
+    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromPrivateKeyBase58(privateKey);
+    final Future<Ed25519HDKeyPair> signer =
+        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+    return (await (await signer).sign(message.toByteArray())).toBase58();
   }
 
+  @override
+  Future<SignedTx> signCompiledMessageForTransaction(
+      CompiledMessage message) async {
+    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromPrivateKeyBase58(privateKey);
+    final Future<Ed25519HDKeyPair> signer =
+        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+    final signedTransaction =
+        (await (await signer).sign(message.toByteArray()));
+    return SignedTx(
+      signatures: [signedTransaction],
+      compiledMessage: message,
+    );
+  }
+
+  // @override
+  // Future<String> signTransaction(String message) async {
+  //   throw UnimplementedError();
+  // }
+
+  // * Verification
   @override
   Future<bool> verify(String message, String signature) async {
     throw UnimplementedError();

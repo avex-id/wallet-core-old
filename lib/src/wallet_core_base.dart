@@ -77,7 +77,7 @@ export 'blockchain/eip155/keypair/eip155_keypair.dart';
 export 'blockchain/bip122/keypair/bip122_keypair.dart';
 
 // Account
-export 'producers/account/blockchhain_account_factory_producer.dart';
+export 'producers/account/blockchain_account_factory_producer.dart';
 
 export 'domain/common/blockchain_account/blockchain_account.dart';
 

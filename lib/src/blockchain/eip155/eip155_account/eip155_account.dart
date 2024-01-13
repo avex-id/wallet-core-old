@@ -6,11 +6,68 @@ import '../eip155_account_id/eip155_account_id.dart';
 import '../eip155_blockchain_id/eip155_blockchain_id.dart';
 import '../eip155_blockchain_id/eip155_blockchain_reference.dart';
 
-class Eip155BlockchainAccount
-    implements BlockchainAccount<Eip155BlockchainAccountId> {
+typedef Eip155BlockchainAccountGeneratorType = BlockchainAccountGenerator<
+    Eip155BlockchainAccount,
+    Eip155BlockchainAccountId,
+    Eip155BlockchainAccountSigner,
+    Eip155BlockchainId,
+    EthereumAddress>;
+
+typedef Eip155BlockchainAccountSignerType
+    = BlockchainAccountSigner<Eip155BlockchainId>;
+
+typedef Eip155BlockchainAccountType = BlockchainAccount<
+    Eip155BlockchainAccountId,
+    Eip155BlockchainAccountSigner,
+    Eip155BlockchainId,
+    EthereumAddress>;
+
+typedef Eip155BlockchainAccountFactoryType = BlockchainAccountFactory<
+    Eip155BlockchainAccount,
+    Eip155BlockchainAccountId,
+    Eip155BlockchainAccountSigner,
+    Eip155BlockchainAccountGenerator,
+    Eip155BlockchainId,
+    EthereumAddress>;
+
+typedef Eip155KeyPairBlockchainAccountStrategyType
+    = KeyPairBlockchainAccountStrategy<
+        Eip155BlockchainAccount,
+        Eip155BlockchainAccountId,
+        Eip155BlockchainAccountSigner,
+        Eip155BlockchainId,
+        EthereumAddress>;
+
+typedef Eip155BlockchainAccountStrategyFactoryType
+    = KeyPairBlockchainAccountStrategyFactory<
+        Eip155BlockchainAccount,
+        Eip155BlockchainAccountId,
+        Eip155BlockchainAccountSigner,
+        Eip155BlockchainId,
+        EthereumAddress,
+        EthereumAddress,
+        EthPrivateKey,
+        Eip155KeyPair,
+        Eip155KeyPairSigner,
+        Eip155KeyPairVerifier,
+        Eip155KeyPairBlockchainAccountStrategyType>;
+
+abstract class Eip155BlockchainAccountSigner
+    implements Eip155BlockchainAccountSignerType {
+  Future<String> personalSign(String message);
+  Future<String> ethSign(String message);
+  Future<String> ethSignTypedData(String message);
+  // Future<String> ethSignTransaction(Transaction transaction);
+  // Future<String> ethSendTransaction(Transaction transaction);
+    }
+
+abstract class Eip155BlockchainAccountGenerator
+    implements Eip155BlockchainAccountGeneratorType {}
+
+class Eip155BlockchainAccount implements Eip155BlockchainAccountType, Eip155BlockchainAccountSigner {
   @override
   final Eip155BlockchainAccountId blockchainAccountId;
-  late final BlockchainAccountAuthenticator _authenticator;
+  late final Eip155BlockchainAccountSigner _authenticator;
 
   Eip155BlockchainAccount(
       Eip155Reference reference, EthereumAddress accountAddress)
@@ -18,22 +75,35 @@ class Eip155BlockchainAccount
             Eip155BlockchainAccountId(reference, accountAddress);
 
   @override
-  Future<String> authenticate(String message) {
-    return _authenticator.authenticate(message);
+  Future<String> signMessage(String message) {
+    return _authenticator.signMessage(message);
   }
 
   @override
-  void setAuthenticator(BlockchainAccountAuthenticator authenticator) {
+  Future<String> personalSign(String message) {
+    return _authenticator.personalSign(message);
+  }
+
+  @override
+  Future<String> ethSign(String message) {
+    return _authenticator.ethSign(message);
+  }
+
+  @override
+  Future<String> ethSignTypedData(String message) {
+    return _authenticator.ethSignTypedData(message);
+  }
+
+  @override
+  void setAccountSigner(Eip155BlockchainAccountSigner authenticator) {
     _authenticator = authenticator;
   }
 }
 
 class Eip155BlockchainAccountFactory
-    implements
-        BlockchainAccountFactory<Eip155BlockchainAccount,
-            Eip155BlockchainAccountId, EthereumAddress> {
+    implements Eip155BlockchainAccountFactoryType {
   final Eip155BlockchainId blockchainId;
-  late final BlockchainAccountGenerator<Eip155BlockchainAccount> _generator;
+  late final Eip155BlockchainAccountGenerator _generator;
 
   Eip155BlockchainAccountFactory(Eip155Reference reference)
       : blockchainId = Eip155BlockchainId(reference);
@@ -55,14 +125,16 @@ class Eip155BlockchainAccountFactory
   }
 
   @override
-  void setGenerator(
-      BlockchainAccountGenerator<Eip155BlockchainAccount> generator) {
+  void setGenerator(Eip155BlockchainAccountGenerator generator) {
     _generator = generator;
   }
 }
 
 class Eip155KeyPairBlockchainAccountStrategy
-    implements KeyPairBlockchainAccountStrategy<Eip155BlockchainAccount> {
+    implements
+        Eip155KeyPairBlockchainAccountStrategyType,
+        Eip155BlockchainAccountGenerator,
+        Eip155BlockchainAccountSigner {
   final Eip155KeyPair _keyPair;
 
   Eip155KeyPairBlockchainAccountStrategy._(this._keyPair);
@@ -79,8 +151,23 @@ class Eip155KeyPairBlockchainAccountStrategy
   }
 
   @override
-  Future<String> authenticate(String message) async {
+  Future<String> signMessage(String message) async {
     return _keyPair.signMessage(message);
+  }
+
+  @override
+  Future<String> personalSign(String message) async {
+    return _keyPair.personalSign(message);
+  }
+
+  @override
+  Future<String> ethSign(String message) async {
+    return _keyPair.ethSign(message);
+  }
+
+  @override
+  Future<String> ethSignTypedData(String message) async {
+    return _keyPair.ethSignTypedData(message);
   }
 }
 
@@ -88,13 +175,18 @@ class Eip155KeyPairBlockchainAccountStrategyFactory
     implements
         KeyPairBlockchainAccountStrategyFactory<
             Eip155BlockchainAccount,
+            Eip155BlockchainAccountId,
+            Eip155BlockchainAccountSigner,
+            Eip155BlockchainId,
+            EthereumAddress,
             EthereumAddress,
             EthPrivateKey,
             Eip155KeyPair,
             Eip155KeyPairSigner,
-            Eip155KeyPairVerifier> {
+            Eip155KeyPairVerifier,
+            Eip155KeyPairBlockchainAccountStrategy> {
   @override
-  KeyPairBlockchainAccountStrategy<Eip155BlockchainAccount> createFromKeyPair(
+  Eip155KeyPairBlockchainAccountStrategy createFromKeyPair(
       Eip155KeyPair keyPair) {
     return Eip155KeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
         keyPair);

@@ -69,18 +69,24 @@ typedef Bip122PrivateKeyPairStrategyFactoryType = PrivateKeyPairStrategyFactory<
     Bip122KeyPairGenerator,
     Bip122PrivateKeyPairStrategy>;
 
-abstract class Bip122KeyPairSigner extends Bip122KeyPairSignerType {}
+abstract class Bip122KeyPairSigner extends Bip122KeyPairSignerType {
+  Future<MessageSignature> personalSign(String message);
+}
 
-abstract class Bip122KeyPairVerifier extends Bip122KeyPairVerifierType {}
+abstract class Bip122KeyPairVerifier extends Bip122KeyPairVerifierType {
+  Future<Bip122PublicKeyType> recoverSignature(
+      String message, String signature);
+}
 
 abstract class Bip122KeyPairGenerator extends Bip122KeyPairGeneratorType {}
 
-class Bip122KeyPair implements Bip122KeyPairType {
+class Bip122KeyPair
+    implements Bip122KeyPairType, Bip122KeyPairSigner, Bip122KeyPairVerifier {
   final Bip122BlockchainId blockchainId;
   final Bip122PublicKeyType _publicKey;
   final Bip122PrivateKeyType? _privateKey;
-  late final KeyPairSigner _signer;
-  late final KeyPairVerifier _verifier;
+  late final Bip122KeyPairSigner _signer;
+  late final Bip122KeyPairVerifier _verifier;
 
   Bip122KeyPair._(Bip122Reference reference, this._publicKey, this._privateKey)
       : blockchainId = Bip122BlockchainId(reference);
@@ -101,9 +107,17 @@ class Bip122KeyPair implements Bip122KeyPairType {
   }
 
   @override
-  Future<String> signTransaction(String message) async {
-    return _signer.signTransaction(message);
+  Future<MessageSignature> personalSign(String message) async {
+    return MessageSignature.sign(
+        key: _privateKey!,
+        message: message,
+        prefix: blockchainId.reference.networkParams.messagePrefix);
   }
+
+  // @override
+  // Future<String> signTransaction(String message) async {
+  //   return _signer.signTransaction(message);
+  // }
 
   @override
   Future<bool> verify(String message, String signature) async {
@@ -111,10 +125,16 @@ class Bip122KeyPair implements Bip122KeyPairType {
   }
 
   @override
-  void setSigner(KeyPairSigner signer) => _signer = signer;
+  Future<Bip122PublicKeyType> recoverSignature(
+      String message, String signature) async {
+    return _verifier.recoverSignature(message, signature);
+  }
 
   @override
-  void setVerifier(KeyPairVerifier verifier) => _verifier = verifier;
+  void setSigner(Bip122KeyPairSigner signer) => _signer = signer;
+
+  @override
+  void setVerifier(Bip122KeyPairVerifier verifier) => _verifier = verifier;
 
   @override
   String get publicKey => _publicKey.hex;
@@ -198,7 +218,7 @@ class Bip122SeedKeyPairStrategy
       Bip122Reference reference, Uint8List seed, int index) {
     return Bip122SeedKeyPairStrategy._(reference, seed, index);
   }
-
+  // * Generation
   @override
   Future<Bip122KeyPair> generate() async {
     HDPrivateKey hdKey = _fromSeedAndIndex(_seed, _index);
@@ -207,25 +227,40 @@ class Bip122SeedKeyPairStrategy
     return _keyPair;
   }
 
+  // * Signature
   @override
   Future<String> signMessage(String message) async {
+    return (await personalSign(message)).toString();
+  }
+
+  @override
+  Future<MessageSignature> personalSign(String message) async {
     Bip122PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromSeedAndIndex(_seed, _index).privateKey;
     return MessageSignature.sign(
-            key: secretKey,
-            message: message,
-            prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix)
-        .toString();
+        key: secretKey,
+        message: message,
+        prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix);
   }
 
-  @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
-  }
+  // * Transaction
 
+  // * Verification
   @override
   Future<bool> verify(String message, String signature) async {
-    throw UnimplementedError();
+    Bip122PublicKeyType pbKey = await recoverSignature(message, signature);
+    return pbKey == await _keyPair.extractPublicKey();
+  }
+
+  @override
+  Future<Bip122PublicKeyType> recoverSignature(
+      String message, String signature) async {
+    Bip122PublicKeyType? pbKey = MessageSignature.fromBase64(signature).recover(
+        message, _keyPair.blockchainId.reference.networkParams.messagePrefix);
+    if (pbKey == null) {
+      throw Exception('Could not recover public key from signature');
+    }
+    return pbKey;
   }
 
   HDPrivateKey _fromSeedAndIndex(Uint8List seed, int index) {
@@ -266,6 +301,7 @@ class Bip122PrivateKeyPairStrategy
     return Bip122PrivateKeyPairStrategy._(reference, privateKey);
   }
 
+  // * Generation
   @override
   Future<Bip122KeyPair> generate() async {
     _keyPair = await Bip122KeyPairFactory(blockchainId.reference)
@@ -273,25 +309,44 @@ class Bip122PrivateKeyPairStrategy
     return _keyPair;
   }
 
+  // * Signature
   @override
   Future<String> signMessage(String message) async {
+    return (await personalSign(message)).toString();
+  }
+
+  @override
+  Future<MessageSignature> personalSign(String message) async {
     Bip122PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= WIF.fromString(privateKey).privkey;
     return MessageSignature.sign(
-            key: secretKey,
-            message: message,
-            prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix)
-        .toString();
+        key: secretKey,
+        message: message,
+        prefix: _keyPair.blockchainId.reference.networkParams.messagePrefix);
   }
 
-  @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
-  }
+  // * Transaction
+  // @override
+  // Future<String> signTransaction(String message) async {
+  //   throw UnimplementedError();
+  // }
 
+  // * Verification
   @override
   Future<bool> verify(String message, String signature) async {
-    throw UnimplementedError();
+    Bip122PublicKeyType pbKey = await recoverSignature(message, signature);
+    return pbKey == await _keyPair.extractPublicKey();
+  }
+
+  @override
+  Future<Bip122PublicKeyType> recoverSignature(
+      String message, String signature) async {
+    Bip122PublicKeyType? pbKey = MessageSignature.fromBase64(signature).recover(
+        message, _keyPair.blockchainId.reference.networkParams.messagePrefix);
+    if (pbKey == null) {
+      throw Exception('Could not recover public key from signature');
+    }
+    return pbKey;
   }
 }
 

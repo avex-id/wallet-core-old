@@ -5,11 +5,62 @@ import '../solana_account_id/solana_account_id.dart';
 import '../solana_blockchain_id/solana_blockchain_id.dart';
 import '../solana_blockchain_id/solana_blockchain_reference.dart';
 
-class SolanaBlockchainAccount
-    implements BlockchainAccount<SolanaBlockchainAccountId> {
+typedef SolanaBlockchainAccountGeneratorType = BlockchainAccountGenerator<
+    SolanaBlockchainAccount,
+    SolanaBlockchainAccountId,
+    SolanaBlockchainAccountSigner,
+    SolanaBlockchainId,
+    Ed25519HDPublicKey>;
+
+typedef SolanaBlockchainAccountSignerType
+    = BlockchainAccountSigner<SolanaBlockchainId>;
+
+typedef SolanaBlockchainAccountType = BlockchainAccount<
+    SolanaBlockchainAccountId,
+    SolanaBlockchainAccountSigner,
+    SolanaBlockchainId,
+    Ed25519HDPublicKey>;
+
+typedef SolanaBlockchainAccountFactoryType = BlockchainAccountFactory<
+    SolanaBlockchainAccount,
+    SolanaBlockchainAccountId,
+    SolanaBlockchainAccountSigner,
+    SolanaBlockchainAccountGenerator,
+    SolanaBlockchainId,
+    Ed25519HDPublicKey>;
+
+typedef SolanaKeyPairBlockchainAccountStrategyType
+    = KeyPairBlockchainAccountStrategy<
+        SolanaBlockchainAccount,
+        SolanaBlockchainAccountId,
+        SolanaBlockchainAccountSigner,
+        SolanaBlockchainId,
+        Ed25519HDPublicKey>;
+
+typedef SolanaBlockchainAccountStrategyFactoryType
+    = KeyPairBlockchainAccountStrategyFactory<
+        SolanaBlockchainAccount,
+        SolanaBlockchainAccountId,
+        SolanaBlockchainAccountSigner,
+        SolanaBlockchainId,
+        Ed25519HDPublicKey,
+        Ed25519HDPublicKey,
+        Ed25519HDKeyPairData,
+        SolanaKeyPair,
+        SolanaKeyPairSigner,
+        SolanaKeyPairVerifier,
+        SolanaKeyPairBlockchainAccountStrategyType>;
+
+abstract class SolanaBlockchainAccountSigner
+    implements SolanaBlockchainAccountSignerType {}
+
+abstract class SolanaBlockchainAccountGenerator
+    implements SolanaBlockchainAccountGeneratorType {}
+
+class SolanaBlockchainAccount implements SolanaBlockchainAccountType {
   @override
   final SolanaBlockchainAccountId blockchainAccountId;
-  late final BlockchainAccountAuthenticator _authenticator;
+  late final SolanaBlockchainAccountSignerType _authenticator;
 
   SolanaBlockchainAccount(
       SolanaReference reference, Ed25519HDPublicKey accountAddress)
@@ -17,22 +68,20 @@ class SolanaBlockchainAccount
             SolanaBlockchainAccountId(reference, accountAddress);
 
   @override
-  Future<String> authenticate(String message) {
-    return _authenticator.authenticate(message);
+  Future<String> signMessage(String message) {
+    return _authenticator.signMessage(message);
   }
 
   @override
-  void setAuthenticator(BlockchainAccountAuthenticator authenticator) {
+  void setAccountSigner(SolanaBlockchainAccountSignerType authenticator) {
     _authenticator = authenticator;
   }
 }
 
 class SolanaBlockchainAccountFactory
-    implements
-        BlockchainAccountFactory<SolanaBlockchainAccount,
-            SolanaBlockchainAccountId, Ed25519HDPublicKey> {
+    implements SolanaBlockchainAccountFactoryType {
   final SolanaBlockchainId blockchainId;
-  late final BlockchainAccountGenerator<SolanaBlockchainAccount> _generator;
+  late final SolanaBlockchainAccountGenerator _generator;
 
   SolanaBlockchainAccountFactory(SolanaReference reference)
       : blockchainId = SolanaBlockchainId(reference);
@@ -54,14 +103,16 @@ class SolanaBlockchainAccountFactory
   }
 
   @override
-  void setGenerator(
-      BlockchainAccountGenerator<SolanaBlockchainAccount> generator) {
+  void setGenerator(SolanaBlockchainAccountGenerator generator) {
     _generator = generator;
   }
 }
 
 class SolanaKeyPairBlockchainAccountStrategy
-    implements KeyPairBlockchainAccountStrategy<SolanaBlockchainAccount> {
+    implements
+        SolanaKeyPairBlockchainAccountStrategyType,
+        SolanaBlockchainAccountGenerator,
+        SolanaBlockchainAccountSigner {
   final SolanaKeyPair _keyPair;
 
   SolanaKeyPairBlockchainAccountStrategy._(this._keyPair);
@@ -78,7 +129,7 @@ class SolanaKeyPairBlockchainAccountStrategy
   }
 
   @override
-  Future<String> authenticate(String message) async {
+  Future<String> signMessage(String message) async {
     return _keyPair.signMessage(message);
   }
 }
@@ -87,13 +138,18 @@ class SolanaKeyPairBlockchainAccountStrategyFactory
     implements
         KeyPairBlockchainAccountStrategyFactory<
             SolanaBlockchainAccount,
+            SolanaBlockchainAccountId,
+            SolanaBlockchainAccountSigner,
+            SolanaBlockchainId,
+            Ed25519HDPublicKey,
             Ed25519HDPublicKey,
             Ed25519HDKeyPairData,
             SolanaKeyPair,
             SolanaKeyPairSigner,
-            SolanaKeyPairVerifier> {
+            SolanaKeyPairVerifier,
+            SolanaKeyPairBlockchainAccountStrategy> {
   @override
-  KeyPairBlockchainAccountStrategy<SolanaBlockchainAccount> createFromKeyPair(
+  SolanaKeyPairBlockchainAccountStrategy createFromKeyPair(
       SolanaKeyPair keyPair) {
     return SolanaKeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
         keyPair);

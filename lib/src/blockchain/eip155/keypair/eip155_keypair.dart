@@ -74,19 +74,25 @@ typedef Eip155PrivateKeyPairStrategyFactoryType = PrivateKeyPairStrategyFactory<
     Eip155KeyPairGenerator,
     Eip155PrivateKeyPairStrategy>;
 
-abstract class Eip155KeyPairSigner implements Eip155KeyPairSignerType {
-  // // Future<String> personalSign(String message);
-  // Future<String> ethSign(String message);
-  // // Future<String> ethSignTransaction(String message);
-  // Future<String> ethSignTypedData(String message);
-  // Future<String> ethSendTransaction(String message);
+abstract class Eip155KeyPairSigner extends Eip155KeyPairSignerType {
+  Future<String> personalSign(String message);
+  Future<String> ethSign(String message);
+  Future<String> ethSignTypedData(String message);
+  Future<String> ethSignTransaction(Transaction transaction);
+  Future<String> ethSendTransaction(Transaction transaction);
 }
 
-abstract class Eip155KeyPairVerifier implements Eip155KeyPairVerifierType {}
+abstract class Eip155KeyPairVerifier extends Eip155KeyPairVerifierType {
+  Future<Eip155PublicKeyType> recoverSignature(
+      String message, String signature);
+  Future<Eip155PublicKeyType> recoverPersonalSignature(
+      String message, String signature);
+}
 
-abstract class Eip155KeyPairGenerator implements Eip155KeyPairGeneratorType {}
+abstract class Eip155KeyPairGenerator extends Eip155KeyPairGeneratorType {}
 
-class Eip155KeyPair implements Eip155KeyPairType {
+class Eip155KeyPair
+    implements Eip155KeyPairType, Eip155KeyPairSigner, Eip155KeyPairVerifier {
   final Eip155BlockchainId blockchainId;
   final Eip155PublicKeyType _publicKey;
   final Eip155PrivateKeyType? _privateKey;
@@ -115,26 +121,51 @@ class Eip155KeyPair implements Eip155KeyPairType {
   }
 
   @override
-  Future<String> signTransaction(String message) async {
-    return _signer.signTransaction(message);
+  Future<String> personalSign(String message) async {
+    return _signer.personalSign(message);
   }
+
+  @override
+  Future<String> ethSign(String message) async {
+    return _signer.ethSign(message);
+  }
+
+  @override
+  Future<String> ethSignTypedData(String message) async {
+    return _signer.ethSignTypedData(message);
+  }
+
+  @override
+  Future<String> ethSignTransaction(Transaction transaction) async {
+    return _signer.ethSignTransaction(transaction);
+  }
+
+  @override
+  Future<String> ethSendTransaction(Transaction transaction) async {
+    return _signer.ethSendTransaction(transaction);
+  }
+
+  // @override
+  // Future<String> signTransaction(String message) async {
+  //   return _signer.signTransaction(message);
+  // }
 
   @override
   Future<bool> verify(String message, String signature) async {
     return _verifier.verify(message, signature);
   }
 
-  // Future<String> ethSign(String message) async {
-  //   return _signer.signMessage(message);
-  // }
+  @override
+  Future<Eip155PublicKeyType> recoverSignature(
+      String message, String signature) async {
+    return _verifier.recoverSignature(message, signature);
+  }
 
-  // Future<String> ethSignTypedData(String message) async {
-  //   return _signer.ethSignTypedData(message);
-  // }
-
-  // Future<String> ethSendTransaction(String message) async {
-  //   return _signer.ethSendTransaction(message);
-  // }
+  @override
+  Future<Eip155PublicKeyType> recoverPersonalSignature(
+      String message, String signature) async {
+    return _verifier.recoverPersonalSignature(message, signature);
+  }
 
   @override
   void setSigner(Eip155KeyPairSigner signer) => _signer = signer;
@@ -221,6 +252,7 @@ class Eip155SeedKeyPairStrategy
     return Eip155SeedKeyPairStrategy._(reference, seed, index);
   }
 
+  // * Generation
   @override
   Future<Eip155KeyPair> generate() async {
     Eip155PrivateKeyType extendedKey = _fromSeedAndIndex(_seed, _index);
@@ -229,23 +261,78 @@ class Eip155SeedKeyPairStrategy
     return _keyPair;
   }
 
+  // * Signature
   @override
   Future<String> signMessage(String message) async {
+    return personalSign(message);
+  }
+
+  @override
+  Future<String> personalSign(String message) async {
     Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromSeedAndIndex(_seed, _index);
     return EthSigUtil.signPersonalMessage(
         message: hexToBytes(HEX.encode(message.codeUnits)),
-        privateKey: bytesToHex(secretKey.privateKey));
+        privateKeyInBytes: secretKey.privateKey);
   }
 
   @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
+  Future<String> ethSign(String message) async {
+    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromSeedAndIndex(_seed, _index);
+    return EthSigUtil.signMessage(
+        message: hexToBytes(HEX.encode(message.codeUnits)),
+        privateKeyInBytes: secretKey.privateKey);
   }
 
+  @override
+  Future<String> ethSignTypedData(String message) async {
+    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromSeedAndIndex(_seed, _index);
+    return EthSigUtil.signPersonalTypedData(
+        privateKeyInBytes: secretKey.privateKey,
+        jsonData: message,
+        version: TypedDataVersion.V4);
+  }
+
+  // * Transaction
+  @override
+  Future<String> ethSignTransaction(Transaction tx) async {
+    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromSeedAndIndex(_seed, _index);
+    return bytesToHex(signTransactionRaw(tx, secretKey));
+  }
+
+  @override
+  Future<String> ethSendTransaction(Transaction tx) async {
+    return ethSignTransaction(tx);
+  }
+
+  // * Verification
   @override
   Future<bool> verify(String message, String signature) async {
-    throw UnimplementedError();
+    Eip155PublicKeyType recoveredKey =
+        await recoverPersonalSignature(message, signature);
+    Eip155PublicKeyType expectedPublicKey = await _keyPair.extractPublicKey();
+    return recoveredKey == expectedPublicKey;
+  }
+
+  @override
+  Future<Eip155PublicKeyType> recoverPersonalSignature(
+      String message, String signature) async {
+    final String recoveredAddress = EthSigUtil.recoverPersonalSignature(
+        message: hexToBytes(HEX.encode(message.codeUnits)),
+        signature: signature);
+    return Eip155PublicKeyType.fromHex(recoveredAddress);
+  }
+
+  @override
+  Future<Eip155PublicKeyType> recoverSignature(
+      String message, String signature) async {
+    final String recoveredAddress = EthSigUtil.recoverSignature(
+        message: hexToBytes(HEX.encode(message.codeUnits)),
+        signature: signature);
+    return Eip155PublicKeyType.fromHex(recoveredAddress);
   }
 
   Eip155PrivateKeyType _fromSeedAndIndex(Uint8List seed, int index) {
@@ -286,6 +373,7 @@ class Eip155PrivateKeyPairStrategy
     return Eip155PrivateKeyPairStrategy._(reference, privateKey);
   }
 
+  // * Generation
   @override
   Future<Eip155KeyPair> generate() async {
     _keyPair = await Eip155KeyPairFactory(blockchainId.reference)
@@ -293,23 +381,79 @@ class Eip155PrivateKeyPairStrategy
     return _keyPair;
   }
 
+  // * Signature
   @override
   Future<String> signMessage(String message) async {
+    return personalSign(message);
+  }
+
+  @override
+  Future<String> personalSign(String message) async {
     Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= Eip155PrivateKeyType.fromHex(privateKey);
     return EthSigUtil.signPersonalMessage(
         message: hexToBytes(HEX.encode(message.codeUnits)),
-        privateKey: privateKey);
+        privateKeyInBytes: secretKey.privateKey);
   }
 
   @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
+  Future<String> ethSign(String message) async {
+    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= Eip155PrivateKeyType.fromHex(privateKey);
+    return EthSigUtil.signMessage(
+        message: hexToBytes(HEX.encode(message.codeUnits)),
+        privateKeyInBytes: secretKey.privateKey);
   }
 
+  @override
+  Future<String> ethSignTypedData(String message) async {
+    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= Eip155PrivateKeyType.fromHex(privateKey);
+    return EthSigUtil.signPersonalTypedData(
+        privateKeyInBytes: secretKey.privateKey,
+        jsonData: message,
+        version: TypedDataVersion.V4);
+  }
+
+  // * Transaction
+  @override
+  Future<String> ethSignTransaction(Transaction tx) async {
+    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= Eip155PrivateKeyType.fromHex(privateKey);
+    return bytesToHex(signTransactionRaw(tx, secretKey,
+        chainId: int.parse(blockchainId.reference.value)));
+  }
+
+  @override
+  Future<String> ethSendTransaction(Transaction tx) async {
+    return ethSendTransaction(tx);
+  }
+
+  // * Verification
   @override
   Future<bool> verify(String message, String signature) async {
-    throw UnimplementedError();
+    Eip155PublicKeyType recoveredKey =
+        await recoverPersonalSignature(message, signature);
+    Eip155PublicKeyType expectedPublicKey = await _keyPair.extractPublicKey();
+    return recoveredKey == expectedPublicKey;
+  }
+
+  @override
+  Future<Eip155PublicKeyType> recoverPersonalSignature(
+      String message, String signature) async {
+    final String recoveredAddress = EthSigUtil.recoverPersonalSignature(
+        message: hexToBytes(HEX.encode(message.codeUnits)),
+        signature: signature);
+    return Eip155PublicKeyType.fromHex(recoveredAddress);
+  }
+
+  @override
+  Future<Eip155PublicKeyType> recoverSignature(
+      String message, String signature) async {
+    final String recoveredAddress = EthSigUtil.recoverSignature(
+        message: hexToBytes(HEX.encode(message.codeUnits)),
+        signature: signature);
+    return Eip155PublicKeyType.fromHex(recoveredAddress);
   }
 }
 

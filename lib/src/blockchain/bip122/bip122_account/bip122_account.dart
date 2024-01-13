@@ -5,33 +5,81 @@ import '../bip122_blockchain_id/bip122_blockchain_id.dart';
 import '../bip122_blockchain_id/bip122_blockchain_reference.dart';
 import '../keypair/bip122_keypair.dart';
 
-class Bip122BlockchainAccount
-    implements BlockchainAccount<Bip122BlockchainAccountId> {
+typedef Bip122BlockchainAccountGeneratorType = BlockchainAccountGenerator<
+    Bip122BlockchainAccount,
+    Bip122BlockchainAccountId,
+    Bip122BlockchainAccountSigner,
+    Bip122BlockchainId,
+    Address>;
+
+typedef Bip122BlockchainAccountSignerType
+    = BlockchainAccountSigner<Bip122BlockchainId>;
+
+typedef Bip122BlockchainAccountType = BlockchainAccount<
+    Bip122BlockchainAccountId,
+    Bip122BlockchainAccountSigner,
+    Bip122BlockchainId,
+    Address>;
+typedef Bip122BlockchainAccountFactoryType = BlockchainAccountFactory<
+    Bip122BlockchainAccount,
+    Bip122BlockchainAccountId,
+    Bip122BlockchainAccountSigner,
+    Bip122BlockchainAccountGenerator,
+    Bip122BlockchainId,
+    Address>;
+
+typedef Bip122KeyPairBlockchainAccountStrategyType
+    = KeyPairBlockchainAccountStrategy<
+        Bip122BlockchainAccount,
+        Bip122BlockchainAccountId,
+        Bip122BlockchainAccountSigner,
+        Bip122BlockchainId,
+        Address>;
+
+typedef Bip122BlockchainAccountStrategyFactoryType
+    = KeyPairBlockchainAccountStrategyFactory<
+        Bip122BlockchainAccount,
+        Bip122BlockchainAccountId,
+        Bip122BlockchainAccountSigner,
+        Bip122BlockchainId,
+        Address,
+        ECPublicKey,
+        Bip122PrivateKeyType,
+        Bip122KeyPair,
+        Bip122KeyPairSigner,
+        Bip122KeyPairVerifier,
+        Bip122KeyPairBlockchainAccountStrategyType>;
+
+abstract class Bip122BlockchainAccountSigner
+    implements Bip122BlockchainAccountSignerType {}
+
+abstract class Bip122BlockchainAccountGenerator
+    implements Bip122BlockchainAccountGeneratorType {}
+
+class Bip122BlockchainAccount implements Bip122BlockchainAccountType {
   @override
   final Bip122BlockchainAccountId blockchainAccountId;
-  late final BlockchainAccountAuthenticator _authenticator;
+  late final Bip122BlockchainAccountSignerType _authenticator;
 
   Bip122BlockchainAccount(Bip122Reference reference, Address accountAddress)
       : blockchainAccountId =
             Bip122BlockchainAccountId(reference, accountAddress);
 
   @override
-  Future<String> authenticate(String message) {
-    return _authenticator.authenticate(message);
+  Future<String> signMessage(String message) {
+    return _authenticator.signMessage(message);
   }
 
   @override
-  void setAuthenticator(BlockchainAccountAuthenticator authenticator) {
+  void setAccountSigner(Bip122BlockchainAccountSignerType authenticator) {
     _authenticator = authenticator;
   }
 }
 
 class Bip122BlockchainAccountFactory
-    implements
-        BlockchainAccountFactory<Bip122BlockchainAccount,
-            Bip122BlockchainAccountId, Address> {
+    implements Bip122BlockchainAccountFactoryType {
   final Bip122BlockchainId blockchainId;
-  late final BlockchainAccountGenerator<Bip122BlockchainAccount> _generator;
+  late final Bip122BlockchainAccountGenerator _generator;
 
   Bip122BlockchainAccountFactory(Bip122Reference reference)
       : blockchainId = Bip122BlockchainId(reference);
@@ -55,14 +103,16 @@ class Bip122BlockchainAccountFactory
   }
 
   @override
-  void setGenerator(
-      BlockchainAccountGenerator<Bip122BlockchainAccount> generator) {
+  void setGenerator(Bip122BlockchainAccountGenerator generator) {
     _generator = generator;
   }
 }
 
 class Bip122KeyPairBlockchainAccountStrategy
-    implements KeyPairBlockchainAccountStrategy<Bip122BlockchainAccount> {
+    implements
+        Bip122KeyPairBlockchainAccountStrategyType,
+        Bip122BlockchainAccountGenerator,
+        Bip122BlockchainAccountSigner {
   final Bip122KeyPair _keyPair;
 
   Bip122KeyPairBlockchainAccountStrategy._(this._keyPair);
@@ -81,21 +131,27 @@ class Bip122KeyPairBlockchainAccountStrategy
   }
 
   @override
-  Future<String> authenticate(String message) async {
+  Future<String> signMessage(String message) async {
     return _keyPair.signMessage(message);
   }
 }
 
 class Bip122KeyPairBlockchainAccountStrategyFactory
     implements
-        KeyPairBlockchainAccountStrategyFactory<Bip122BlockchainAccount,
+        KeyPairBlockchainAccountStrategyFactory<
+            Bip122BlockchainAccount,
+            Bip122BlockchainAccountId,
+            Bip122BlockchainAccountSigner,
+            Bip122BlockchainId,
+            Address,
             ECPublicKey,
-            ECPrivateKey,
+            Bip122PrivateKeyType,
             Bip122KeyPair,
             Bip122KeyPairSigner,
-            Bip122KeyPairVerifier> {
+            Bip122KeyPairVerifier,
+            Bip122KeyPairBlockchainAccountStrategy> {
   @override
-  KeyPairBlockchainAccountStrategy<Bip122BlockchainAccount> createFromKeyPair(
+  Bip122KeyPairBlockchainAccountStrategy createFromKeyPair(
       Bip122KeyPair keyPair) {
     return Bip122KeyPairBlockchainAccountStrategy.generateAccountFromKeyPair(
         keyPair);
