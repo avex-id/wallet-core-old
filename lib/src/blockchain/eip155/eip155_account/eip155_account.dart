@@ -59,15 +59,16 @@ abstract class Eip155BlockchainAccountSigner
   Future<String> ethSignTypedData(String message);
   // Future<String> ethSignTransaction(Transaction transaction);
   // Future<String> ethSendTransaction(Transaction transaction);
-    }
+}
 
 abstract class Eip155BlockchainAccountGenerator
     implements Eip155BlockchainAccountGeneratorType {}
 
-class Eip155BlockchainAccount implements Eip155BlockchainAccountType, Eip155BlockchainAccountSigner {
+class Eip155BlockchainAccount
+    implements Eip155BlockchainAccountType, Eip155BlockchainAccountSigner {
   @override
   final Eip155BlockchainAccountId blockchainAccountId;
-  late final Eip155BlockchainAccountSigner _authenticator;
+  late final Eip155BlockchainAccountSigner _accountSigner;
 
   Eip155BlockchainAccount(
       Eip155Reference reference, EthereumAddress accountAddress)
@@ -76,27 +77,27 @@ class Eip155BlockchainAccount implements Eip155BlockchainAccountType, Eip155Bloc
 
   @override
   Future<String> signMessage(String message) {
-    return _authenticator.signMessage(message);
+    return _accountSigner.signMessage(message);
   }
 
   @override
   Future<String> personalSign(String message) {
-    return _authenticator.personalSign(message);
+    return _accountSigner.personalSign(message);
   }
 
   @override
   Future<String> ethSign(String message) {
-    return _authenticator.ethSign(message);
+    return _accountSigner.ethSign(message);
   }
 
   @override
   Future<String> ethSignTypedData(String message) {
-    return _authenticator.ethSignTypedData(message);
+    return _accountSigner.ethSignTypedData(message);
   }
 
   @override
-  void setAccountSigner(Eip155BlockchainAccountSigner authenticator) {
-    _authenticator = authenticator;
+  void setAccountSigner(Eip155BlockchainAccountSigner accountSigner) {
+    _accountSigner = accountSigner;
   }
 }
 

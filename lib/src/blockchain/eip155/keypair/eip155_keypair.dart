@@ -278,18 +278,14 @@ class Eip155SeedKeyPairStrategy
 
   @override
   Future<String> ethSign(String message) async {
-    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    secretKey ??= _fromSeedAndIndex(_seed, _index);
-    return EthSigUtil.signMessage(
-        message: hexToBytes(HEX.encode(message.codeUnits)),
-        privateKeyInBytes: secretKey.privateKey);
+    return personalSign(message);
   }
 
   @override
   Future<String> ethSignTypedData(String message) async {
     Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromSeedAndIndex(_seed, _index);
-    return EthSigUtil.signPersonalTypedData(
+    return EthSigUtil.signTypedData(
         privateKeyInBytes: secretKey.privateKey,
         jsonData: message,
         version: TypedDataVersion.V4);
@@ -398,18 +394,14 @@ class Eip155PrivateKeyPairStrategy
 
   @override
   Future<String> ethSign(String message) async {
-    Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    secretKey ??= Eip155PrivateKeyType.fromHex(privateKey);
-    return EthSigUtil.signMessage(
-        message: hexToBytes(HEX.encode(message.codeUnits)),
-        privateKeyInBytes: secretKey.privateKey);
+    return personalSign(message);
   }
 
   @override
   Future<String> ethSignTypedData(String message) async {
     Eip155PrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= Eip155PrivateKeyType.fromHex(privateKey);
-    return EthSigUtil.signPersonalTypedData(
+    return EthSigUtil.signTypedData(
         privateKeyInBytes: secretKey.privateKey,
         jsonData: message,
         version: TypedDataVersion.V4);

@@ -59,7 +59,7 @@ abstract class Bip122BlockchainAccountGenerator
 class Bip122BlockchainAccount implements Bip122BlockchainAccountType {
   @override
   final Bip122BlockchainAccountId blockchainAccountId;
-  late final Bip122BlockchainAccountSignerType _authenticator;
+  late final Bip122BlockchainAccountSignerType _accountSigner;
 
   Bip122BlockchainAccount(Bip122Reference reference, Address accountAddress)
       : blockchainAccountId =
@@ -67,12 +67,12 @@ class Bip122BlockchainAccount implements Bip122BlockchainAccountType {
 
   @override
   Future<String> signMessage(String message) {
-    return _authenticator.signMessage(message);
+    return _accountSigner.signMessage(message);
   }
 
   @override
-  void setAccountSigner(Bip122BlockchainAccountSignerType authenticator) {
-    _authenticator = authenticator;
+  void setAccountSigner(Bip122BlockchainAccountSignerType accountSigner) {
+    _accountSigner = accountSigner;
   }
 }
 

@@ -60,7 +60,7 @@ abstract class SolanaBlockchainAccountGenerator
 class SolanaBlockchainAccount implements SolanaBlockchainAccountType {
   @override
   final SolanaBlockchainAccountId blockchainAccountId;
-  late final SolanaBlockchainAccountSignerType _authenticator;
+  late final SolanaBlockchainAccountSignerType _accountSigner;
 
   SolanaBlockchainAccount(
       SolanaReference reference, Ed25519HDPublicKey accountAddress)
@@ -69,12 +69,12 @@ class SolanaBlockchainAccount implements SolanaBlockchainAccountType {
 
   @override
   Future<String> signMessage(String message) {
-    return _authenticator.signMessage(message);
+    return _accountSigner.signMessage(message);
   }
 
   @override
-  void setAccountSigner(SolanaBlockchainAccountSignerType authenticator) {
-    _authenticator = authenticator;
+  void setAccountSigner(SolanaBlockchainAccountSignerType accountSigner) {
+    _accountSigner = accountSigner;
   }
 }
 
