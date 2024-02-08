@@ -33,7 +33,7 @@ Future<void> main() async {
   // }
 
   // Generate secret shares
-  final secretShares = ShamirSecretManager(minimum: 2, shares: 3)
+  final secretShares = ShamirSecretManager(minimum: 2, shares: 2)
       .generate(secret: mnemonic.toString());
   print("Generated secret shares:");
   for (var i = 0; i < secretShares.length; i++) {

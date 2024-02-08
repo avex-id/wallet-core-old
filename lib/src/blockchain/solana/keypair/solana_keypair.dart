@@ -73,9 +73,9 @@ typedef SolanaPrivateKeyPairStrategyFactoryType = PrivateKeyPairStrategyFactory<
     SolanaPrivateKeyPairStrategy>;
 
 abstract class SolanaKeyPairSigner extends SolanaKeyPairSignerType {
-  Future<String> personalSign(String message);
-  Future<String> signCompiledMessage(CompiledMessage message);
-  Future<SignedTx> signCompiledMessageForTransaction(CompiledMessage message);
+  Future<String> signTransaction(String message);
+  // Future<String> signCompiledMessage(CompiledMessage message);
+  // Future<SignedTx> signCompiledMessageForTransaction(CompiledMessage message);
 }
 
 abstract class SolanaKeyPairVerifier extends SolanaKeyPairVerifierType {}
@@ -109,20 +109,25 @@ class SolanaKeyPair
   }
 
   @override
-  Future<String> personalSign(String message) async {
-    return _signer.signMessage(message);
+  Future<String> signTransaction(String message) async {
+    return _signer.signTransaction(message);
   }
 
-  @override
-  Future<String> signCompiledMessage(CompiledMessage message) async {
-    return _signer.signCompiledMessage(message);
-  }
+  // @override
+  // Future<String> personalSign(String message) async {
+  //   return _signer.signMessage(message);
+  // }
 
-  @override
-  Future<SignedTx> signCompiledMessageForTransaction(
-      CompiledMessage message) async {
-    return _signer.signCompiledMessageForTransaction(message);
-  }
+  // @override
+  // Future<String> signCompiledMessage(CompiledMessage message) async {
+  //   return _signer.signCompiledMessage(message);
+  // }
+
+  // @override
+  // Future<SignedTx> signCompiledMessageForTransaction(
+  //     CompiledMessage message) async {
+  //   return _signer.signCompiledMessageForTransaction(message);
+  // }
   // @override
   // Future<String> signTransaction(String message) async {
   //   return _signer.signTransaction(message);
@@ -234,11 +239,6 @@ class SolanaSeedKeyPairStrategy
   // * Signature
   @override
   Future<String> signMessage(String message) async {
-    return personalSign(message);
-  }
-
-  @override
-  Future<String> personalSign(String message) async {
     SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
     final Future<Ed25519HDKeyPair> signer =
@@ -246,29 +246,33 @@ class SolanaSeedKeyPairStrategy
     return (await (await signer).sign(message.codeUnits)).toBase58();
   }
 
-  // * Transaction
-  @override
-  Future<String> signCompiledMessage(CompiledMessage message) async {
-    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
-    final Future<Ed25519HDKeyPair> signer =
-        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-    return (await (await signer).sign(message.toByteArray())).toBase58();
-  }
+  // // * Transaction
+  // @override
+  // Future<String> signCompiledMessage(CompiledMessage message) async {
+  //   SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+  //   secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
+  //   final Future<Ed25519HDKeyPair> signer =
+  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+  //   return (await (await signer).sign(message.toByteArray())).toBase58();
+  // }
 
+  // @override
+  // Future<SignedTx> signCompiledMessageForTransaction(
+  //     CompiledMessage message) async {
+  //   SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+  //   secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
+  //   final Future<Ed25519HDKeyPair> signer =
+  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+  //   final signedTransaction =
+  //       (await (await signer).sign(message.toByteArray()));
+  //   return SignedTx(
+  //     signatures: [signedTransaction],
+  //     compiledMessage: message,
+  //   );
+  // }
   @override
-  Future<SignedTx> signCompiledMessageForTransaction(
-      CompiledMessage message) async {
-    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
-    final Future<Ed25519HDKeyPair> signer =
-        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-    final signedTransaction =
-        (await (await signer).sign(message.toByteArray()));
-    return SignedTx(
-      signatures: [signedTransaction],
-      compiledMessage: message,
-    );
+  Future<String> signTransaction(String message) async {
+    throw UnimplementedError();
   }
 
   // * Verification
@@ -325,11 +329,6 @@ class SolanaPrivateKeyPairStrategy
   // * Signature
   @override
   Future<String> signMessage(String message) async {
-    return personalSign(message);
-  }
-
-  @override
-  Future<String> personalSign(String message) async {
     SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromPrivateKeyBase58(privateKey);
     final Future<Ed25519HDKeyPair> signer =
@@ -337,35 +336,35 @@ class SolanaPrivateKeyPairStrategy
     return (await (await signer).sign(message.codeUnits)).toBase58();
   }
 
-  // * Transaction
-  @override
-  Future<String> signCompiledMessage(CompiledMessage message) async {
-    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    secretKey ??= _fromPrivateKeyBase58(privateKey);
-    final Future<Ed25519HDKeyPair> signer =
-        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-    return (await (await signer).sign(message.toByteArray())).toBase58();
-  }
-
-  @override
-  Future<SignedTx> signCompiledMessageForTransaction(
-      CompiledMessage message) async {
-    SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    secretKey ??= _fromPrivateKeyBase58(privateKey);
-    final Future<Ed25519HDKeyPair> signer =
-        Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-    final signedTransaction =
-        (await (await signer).sign(message.toByteArray()));
-    return SignedTx(
-      signatures: [signedTransaction],
-      compiledMessage: message,
-    );
-  }
+  // // * Transaction
+  // @override
+  // Future<String> signCompiledMessage(CompiledMessage message) async {
+  //   SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+  //   secretKey ??= _fromPrivateKeyBase58(privateKey);
+  //   final Future<Ed25519HDKeyPair> signer =
+  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+  //   return (await (await signer).sign(message.toByteArray())).toBase58();
+  // }
 
   // @override
-  // Future<String> signTransaction(String message) async {
-  //   throw UnimplementedError();
+  // Future<SignedTx> signCompiledMessageForTransaction(
+  //     CompiledMessage message) async {
+  //   SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+  //   secretKey ??= _fromPrivateKeyBase58(privateKey);
+  //   final Future<Ed25519HDKeyPair> signer =
+  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
+  //   final signedTransaction =
+  //       (await (await signer).sign(message.toByteArray()));
+  //   return SignedTx(
+  //     signatures: [signedTransaction],
+  //     compiledMessage: message,
+  //   );
   // }
+
+  @override
+  Future<String> signTransaction(String message) async {
+    throw UnimplementedError();
+  }
 
   // * Verification
   @override

@@ -10,7 +10,7 @@ class ShamirSecretManager {
   
   final int shares;
 
-  ShamirSecretManager({this.minimum = 2, this.shares = 3}) {
+  ShamirSecretManager({this.minimum = 2, this.shares = 2}) {
     if (minimum < 0 || shares < 0) throw ArgumentError(_NEGATIVE_VALUE);
     if (minimum > shares) throw ArgumentError(_INVALID_MINIMUM);
   }
