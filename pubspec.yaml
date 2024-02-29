@@ -8,16 +8,16 @@ environment:
 
 # Add regular dependencies here.
 dependencies:
-  aptos_sdk_dart: ^1.2.0
+  aptos: 0.0.5
   bip32_bip44: ^1.0.0
   bip39: ^1.0.6
   coinlib: ^1.0.0
+  ed25519_edwards: ^0.3.1
   eip1559: ^0.6.2
   eth_sig_util: ^0.0.9
   hex: ^0.2.0
-  meta: ^1.10.0
   ntcdcrypto: ^0.2.0
-  solana: ^0.30.0+1
+  solana: ^0.30.3
   web3dart: ^2.7.2
   # path: ^1.8.0
 

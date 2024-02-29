@@ -4,6 +4,8 @@ import '../../blockchain/eip155/eip155_account/eip155_account.dart';
 import '../../blockchain/eip155/eip155_blockchain_id/eip155_blockchain_reference.dart';
 import '../../blockchain/solana/solana_account/solana_account.dart';
 import '../../blockchain/solana/solana_blockchain_id/solana_blockchain_reference.dart';
+import '../../blockchain/aptos/aptos_account/aptos_account.dart';
+import '../../blockchain/aptos/aptos_blockchain_id/aptos_blockchain_reference.dart';
 import '../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 import '../../domain/common/blockchain_account/blockchain_account.dart';
 
@@ -15,6 +17,8 @@ class BlockchainAccountFactoryProducer {
       return SolanaBlockchainAccountFactory(reference);
     } else if (reference is Bip122Reference) {
       return Bip122BlockchainAccountFactory(reference);
+    } else if (reference is AptosReference) {
+      return AptosBlockchainAccountFactory(reference);
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }
@@ -30,6 +34,8 @@ class KeyPairBlockchainAccountStrategyProducer {
       return SolanaKeyPairBlockchainAccountStrategyFactory();
     } else if (reference is Bip122Reference) {
       return Bip122KeyPairBlockchainAccountStrategyFactory();
+    } else if (reference is AptosReference) {
+      return AptosKeyPairBlockchainAccountStrategyFactory();
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }

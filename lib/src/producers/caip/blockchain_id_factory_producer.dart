@@ -1,4 +1,5 @@
 import '../../blockchain/bip122/bip122_blockchain_id/bip122_blockchain_id.dart';
+import '../../blockchain/aptos/aptos_blockchain_id/aptos_blockchain_id.dart';
 import '../../blockchain/eip155/eip155_blockchain_id/eip155_blockchain_id.dart';
 import '../../blockchain/solana/solana_blockchain_id/solana_blockchain_id.dart';
 import '../../domain/common/caip/blockchain_id/blockchain_id.dart';
@@ -13,6 +14,8 @@ class BlockchainIdFactoryProducer {
         return SolanaBlockchainIdFactory();
       case BlockchainNamespace.bip122:
         return Bip122BlockchainIdFactory();
+      case BlockchainNamespace.aptos:
+        return AptosBlockchainIdFactory();
       default:
         throw Exception('Invalid blockchain namespace');
     }

@@ -1,3 +1,5 @@
+import '../../blockchain/aptos/aptos_blockchain_id/aptos_blockchain_reference.dart';
+import '../../blockchain/aptos/bip44/bip44.dart';
 import '../../blockchain/bip122/bip122_blockchain_id/bip122_blockchain_reference.dart';
 import '../../blockchain/bip122/bip44/bip44.dart';
 import '../../blockchain/eip155/bip44/bip44.dart';
@@ -15,6 +17,8 @@ class DerivationPathFactoryProducer {
       return Bip122DerivationPathFactory(reference);
     } else if (reference is SolanaReference) {
       return SolanaDerivationPathFactory(reference);
+    } else if (reference is AptosReference) {
+      return AptosDerivationPathFactory(reference);
     } else {
       throw Exception("Unknown blockchain reference: ${reference.toString()}");
     }

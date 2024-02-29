@@ -1,3 +1,5 @@
+import '../../blockchain/aptos/aptos_account_id/aptos_account_id.dart';
+import '../../blockchain/aptos/aptos_blockchain_id/aptos_blockchain_reference.dart';
 import '../../blockchain/bip122/bip122_account_id/bip122_account_id.dart';
 import '../../blockchain/bip122/bip122_blockchain_id/bip122_blockchain_reference.dart';
 import '../../blockchain/eip155/eip155_account_id/eip155_account_id.dart';
@@ -15,6 +17,8 @@ class BlockchainAccountIdFactoryProducer {
       return Eip155BlockchainAccountIdFactory(reference);
     } else if (reference is Bip122Reference) {
       return Bip122BlockchainAccountIdFactory(reference);
+    } else if (reference is AptosReference){
+      return AptosBlockchainAccountIdFactory(reference);
     } else {
       throw Exception("Unknown blockchain reference");
     }

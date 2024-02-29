@@ -1,3 +1,5 @@
+import '../../blockchain/aptos/aptos_blockchain_id/aptos_blockchain_reference.dart';
+import '../../blockchain/aptos/keypair/aptos_keypair.dart';
 import '../../blockchain/bip122/keypair/bip122_keypair.dart';
 import '../../blockchain/solana/keypair/solana_keypair.dart';
 import '../../blockchain/bip122/bip122_blockchain_id/bip122_blockchain_reference.dart';
@@ -8,6 +10,7 @@ import '../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 import '../../domain/common/keypair/keypair.dart';
 import '../../domain/common/keypair/strategy/private_key_strategy.dart';
 import '../../domain/common/keypair/strategy/seed_strategy.dart';
+
 class KeyPairFactoryProducer {
   static KeyPairFactory getFactory(BlockchainReference reference) {
     if (reference is Eip155Reference) {
@@ -16,6 +19,8 @@ class KeyPairFactoryProducer {
       return SolanaKeyPairFactory(reference);
     } else if (reference is Bip122Reference) {
       return Bip122KeyPairFactory(reference);
+    } else if (reference is AptosReference) {
+      return AptosKeyPairFactory(reference);
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }
@@ -30,6 +35,8 @@ class SeedKeyPairStrategyProducer {
       return SolanaSeedKeyPairStrategyFactory(reference);
     } else if (reference is Bip122Reference) {
       return Bip122SeedKeyPairStrategyFactory(reference);
+    } else if (reference is AptosReference) {
+      return AptosSeedKeyPairStrategyFactory(reference);
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }
@@ -45,6 +52,8 @@ class PrivateKeyPairStrategyProducer {
       return SolanaPrivateKeyPairStrategyFactory(reference);
     } else if (reference is Bip122Reference) {
       return Bip122PrivateKeyPairStrategyFactory(reference);
+    } else if (reference is AptosReference) {
+      return AptosPrivateKeyPairStrategyFactory(reference);
     } else {
       throw Exception('Invalid blockchain reference: ${reference.toString()}');
     }
