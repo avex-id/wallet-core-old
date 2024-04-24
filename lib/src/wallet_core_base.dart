@@ -30,26 +30,6 @@ export 'blockchain/bip122/bip122_account_id/bip122_account_id.dart';
 
 export 'blockchain/aptos/aptos_account_id/aptos_account_id.dart';
 
-// Asset ID
-export 'producers/caip/blockchain_asset_id/blockchain_asset_id_factory_producer.dart';
-export 'producers/caip/blockchain_asset_id/blockchain_asset_type_factory_producer.dart';
-
-export 'domain/common/caip/blockchain_asset_id/asset_id.dart';
-export 'domain/common/caip/blockchain_asset_id/asset_type.dart';
-export 'domain/common/caip/blockchain_asset_id/asset_namespace.dart';
-
-export 'blockchain/solana/solana_asset_id/solana_asset_id.dart';
-export 'blockchain/solana/solana_asset_id/solana_asset_type.dart';
-export 'blockchain/solana/solana_asset_id/solana_asset_namespace.dart';
-
-export 'blockchain/eip155/eip155_asset_id/eip155_asset_id.dart';
-export 'blockchain/eip155/eip155_asset_id/eip155_asset_type.dart';
-export 'blockchain/eip155/eip155_asset_id/eip155_asset_namespace.dart';
-
-export 'blockchain/bip122/bip122_asset_id/bip122_asset_id.dart';
-export 'blockchain/bip122/bip122_asset_id/bip122_asset_type.dart';
-export 'blockchain/bip122/bip122_asset_id/bip122_asset_namespace.dart';
-
 // Mnemonic
 export 'domain/common/mnemonic/mnemonic.dart';
 
