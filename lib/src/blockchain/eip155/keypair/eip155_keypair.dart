@@ -116,8 +116,8 @@ class Eip155KeyPair
   }
 
   @override
-  Future<String> signMessage(String message) async {
-    return _signer.signMessage(message);
+  Future<String> sign(String message) async {
+    return _signer.sign(message);
   }
 
   @override
@@ -151,8 +151,8 @@ class Eip155KeyPair
   // }
 
   @override
-  Future<bool> verify(String message, String signature) async {
-    return _verifier.verify(message, signature);
+  Future<bool> verifySignature(String message, String signature) async {
+    return _verifier.verifySignature(message, signature);
   }
 
   @override
@@ -168,10 +168,10 @@ class Eip155KeyPair
   }
 
   @override
-  void setSigner(Eip155KeyPairSigner signer) => _signer = signer;
+  set signer(Eip155KeyPairSigner signer) => _signer = signer;
 
   @override
-  void setVerifier(Eip155KeyPairVerifier verifier) => _verifier = verifier;
+  set verifier(Eip155KeyPairVerifier verifier) => _verifier = verifier;
 
   @override
   String get publicKey => _publicKey.hexEip55;
@@ -219,7 +219,7 @@ class Eip155KeyPairFactory implements Eip155KeyPairFactoryType {
   }
 
   @override
-  void setGenerator(Eip155KeyPairGenerator generator) => _generator = generator;
+  set generator(Eip155KeyPairGenerator generator) => _generator = generator;
 
   Credentials _fromPrivateKey(Eip155PrivateKeyType key) {
     return key;
@@ -263,7 +263,7 @@ class Eip155SeedKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     return personalSign(message);
   }
 
@@ -306,7 +306,7 @@ class Eip155SeedKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     Eip155PublicKeyType recoveredKey =
         await recoverPersonalSignature(message, signature);
     Eip155PublicKeyType expectedPublicKey = await _keyPair.extractPublicKey();
@@ -379,7 +379,7 @@ class Eip155PrivateKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     return personalSign(message);
   }
 
@@ -423,7 +423,7 @@ class Eip155PrivateKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     Eip155PublicKeyType recoveredKey =
         await recoverPersonalSignature(message, signature);
     Eip155PublicKeyType expectedPublicKey = await _keyPair.extractPublicKey();

@@ -70,6 +70,8 @@ export 'producers/account/blockchain_account_factory_producer.dart';
 
 export 'domain/common/blockchain_account/blockchain_account.dart';
 
+export 'domain/common/blockchain_account/strategy/keypair_strategy.dart';
+
 export 'blockchain/solana/solana_account/solana_account.dart';
 
 export 'blockchain/eip155/eip155_account/eip155_account.dart';

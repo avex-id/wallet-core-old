@@ -3,6 +3,7 @@ import 'dart:typed_data';
 import 'package:aptos/aptos.dart';
 import 'package:ed25519_edwards/ed25519_edwards.dart';
 import '../../../domain/common/blockchain_account/blockchain_account.dart';
+import '../../../domain/common/blockchain_account/strategy/keypair_strategy.dart';
 import '../keypair/aptos_keypair.dart';
 import '../aptos_account_id/aptos_account_id.dart';
 import '../aptos_blockchain_id/aptos_blockchain_id.dart';
@@ -12,19 +13,28 @@ typedef AptosBlockchainAccountGeneratorType = BlockchainAccountGenerator<
     AptosBlockchainAccount,
     AptosBlockchainAccountId,
     AptosBlockchainAccountSigner,
+    AptosBlockchainAccountVerifier,
     AptosBlockchainId,
     AccountAddress>;
 
 typedef AptosBlockchainAccountSignerType
     = BlockchainAccountSigner<AptosBlockchainId>;
 
-typedef AptosBlockchainAccountType = BlockchainAccount<AptosBlockchainAccountId,
-    AptosBlockchainAccountSigner, AptosBlockchainId, AccountAddress>;
+typedef AptosBlockchainAccountVerifierType
+    = BlockchainAccountVerifier<AptosBlockchainId>;
+
+typedef AptosBlockchainAccountType = BlockchainAccount<
+    AptosBlockchainAccountId,
+    AptosBlockchainAccountSigner,
+    AptosBlockchainAccountVerifier,
+    AptosBlockchainId,
+    AccountAddress>;
 
 typedef AptosBlockchainAccountFactoryType = BlockchainAccountFactory<
     AptosBlockchainAccount,
     AptosBlockchainAccountId,
     AptosBlockchainAccountSigner,
+    AptosBlockchainAccountVerifier,
     AptosBlockchainAccountGenerator,
     AptosBlockchainId,
     AccountAddress>;
@@ -34,6 +44,7 @@ typedef AptosKeyPairBlockchainAccountStrategyType
         AptosBlockchainAccount,
         AptosBlockchainAccountId,
         AptosBlockchainAccountSigner,
+        AptosBlockchainAccountVerifier,
         AptosBlockchainId,
         AccountAddress>;
 
@@ -42,6 +53,7 @@ typedef AptosBlockchainAccountStrategyFactoryType
         AptosBlockchainAccount,
         AptosBlockchainAccountId,
         AptosBlockchainAccountSigner,
+        AptosBlockchainAccountVerifier,
         AptosBlockchainId,
         AccountAddress,
         PublicKey,
@@ -54,13 +66,21 @@ typedef AptosBlockchainAccountStrategyFactoryType
 abstract class AptosBlockchainAccountSigner
     implements AptosBlockchainAccountSignerType {}
 
+abstract class AptosBlockchainAccountVerifier
+    implements AptosBlockchainAccountVerifierType {}
+
 abstract class AptosBlockchainAccountGenerator
     implements AptosBlockchainAccountGeneratorType {}
 
-class AptosBlockchainAccount implements AptosBlockchainAccountType {
+class AptosBlockchainAccount
+    implements
+        AptosBlockchainAccountType,
+        AptosBlockchainAccountSigner,
+        AptosBlockchainAccountVerifier {
   @override
   final AptosBlockchainAccountId blockchainAccountId;
   late final AptosBlockchainAccountSignerType _accountSigner;
+  late final AptosBlockchainAccountVerifier _accountVerifier;
 
   AptosBlockchainAccount(
       AptosReference reference, AccountAddress accountAddress)
@@ -68,13 +88,23 @@ class AptosBlockchainAccount implements AptosBlockchainAccountType {
             AptosBlockchainAccountId(reference, accountAddress);
 
   @override
-  Future<String> signMessage(String message) {
-    return _accountSigner.signMessage(message);
+  Future<String> sign(String message) {
+    return _accountSigner.sign(message);
   }
 
   @override
-  void setAccountSigner(AptosBlockchainAccountSignerType accountSigner) {
+  Future<bool> verifySignature(String message, String signature) {
+    return _accountVerifier.verifySignature(message, signature);
+  }
+
+  @override
+  set signer(AptosBlockchainAccountSignerType accountSigner) {
     _accountSigner = accountSigner;
+  }
+
+  @override
+  set verifier(AptosBlockchainAccountVerifier accountVerifier) {
+    _accountVerifier = accountVerifier;
   }
 }
 
@@ -103,7 +133,7 @@ class AptosBlockchainAccountFactory
   }
 
   @override
-  void setGenerator(AptosBlockchainAccountGenerator generator) {
+  set generator(AptosBlockchainAccountGenerator generator) {
     _generator = generator;
   }
 }
@@ -112,7 +142,8 @@ class AptosKeyPairBlockchainAccountStrategy
     implements
         AptosKeyPairBlockchainAccountStrategyType,
         AptosBlockchainAccountGenerator,
-        AptosBlockchainAccountSigner {
+        AptosBlockchainAccountSigner,
+        AptosBlockchainAccountVerifier {
   final AptosKeyPair _keyPair;
 
   AptosKeyPairBlockchainAccountStrategy._(this._keyPair);
@@ -131,8 +162,13 @@ class AptosKeyPairBlockchainAccountStrategy
   }
 
   @override
-  Future<String> signMessage(String message) async {
-    return _keyPair.signMessage(message);
+  Future<String> sign(String message) async {
+    return _keyPair.sign(message);
+  }
+
+  @override
+  Future<bool> verifySignature(String message, String signature) async {
+    return _keyPair.verifySignature(message, signature);
   }
 }
 
@@ -142,6 +178,7 @@ class AptosKeyPairBlockchainAccountStrategyFactory
             AptosBlockchainAccount,
             AptosBlockchainAccountId,
             AptosBlockchainAccountSigner,
+            AptosBlockchainAccountVerifier,
             AptosBlockchainId,
             AccountAddress,
             PublicKey,

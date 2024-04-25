@@ -104,8 +104,8 @@ class SolanaKeyPair
   }
 
   @override
-  Future<String> signMessage(String message) async {
-    return _signer.signMessage(message);
+  Future<String> sign(String message) async {
+    return _signer.sign(message);
   }
 
   @override
@@ -115,7 +115,7 @@ class SolanaKeyPair
 
   // @override
   // Future<String> personalSign(String message) async {
-  //   return _signer.signMessage(message);
+  //   return _signer.sign(message);
   // }
 
   // @override
@@ -134,15 +134,15 @@ class SolanaKeyPair
   // }
 
   @override
-  Future<bool> verify(String message, String signature) async {
-    return _verifier.verify(message, signature);
+  Future<bool> verifySignature(String message, String signature) async {
+    return _verifier.verifySignature(message, signature);
   }
 
   @override
-  void setSigner(SolanaKeyPairSigner signer) => _signer = signer;
+  set signer(SolanaKeyPairSigner signer) => _signer = signer;
 
   @override
-  void setVerifier(SolanaKeyPairVerifier verifier) => _verifier = verifier;
+  set verifier(SolanaKeyPairVerifier verifier) => _verifier = verifier;
 
   @override
   String get publicKey => _publicKey.toBase58();
@@ -191,7 +191,7 @@ class SolanaKeyPairFactory implements SolanaKeyPairFactoryType {
   }
 
   @override
-  void setGenerator(SolanaKeyPairGenerator generator) => _generator = generator;
+  set generator(SolanaKeyPairGenerator generator) => _generator = generator;
 
   SolanaPublicKeyType _fromPrivateKey(SolanaPrivateKeyType privateKey) {
     return privateKey.publicKey;
@@ -238,7 +238,7 @@ class SolanaSeedKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
     final Future<Ed25519HDKeyPair> signer =
@@ -277,7 +277,7 @@ class SolanaSeedKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     throw UnimplementedError();
   }
 
@@ -328,7 +328,7 @@ class SolanaPrivateKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     SolanaPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromPrivateKeyBase58(privateKey);
     final Future<Ed25519HDKeyPair> signer =
@@ -368,7 +368,7 @@ class SolanaPrivateKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     throw UnimplementedError();
   }
 
