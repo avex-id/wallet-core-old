@@ -87,8 +87,8 @@ class SolanaKeyPair
   final SolanaBlockchainId blockchainId;
   final SolanaPublicKeyType _publicKey;
   final SolanaPrivateKeyType? _privateKey;
-  late final SolanaKeyPairSigner _signer;
-  late final SolanaKeyPairVerifier _verifier;
+  late SolanaKeyPairSigner _signer;
+  late SolanaKeyPairVerifier _verifier;
 
   SolanaKeyPair._(SolanaReference reference, this._publicKey, this._privateKey)
       : blockchainId = SolanaBlockchainId(reference);
@@ -150,12 +150,12 @@ class SolanaKeyPair
   @override
   String get privateKey => (_privateKey == null)
       ? ''
-      : base58encode(_privateKey!.bytes + _publicKey.bytes);
+      : base58encode(_privateKey.bytes + _publicKey.bytes);
 }
 
 class SolanaKeyPairFactory implements SolanaKeyPairFactoryType {
   final SolanaBlockchainId blockchainId;
-  late final SolanaKeyPairGenerator _generator;
+  late SolanaKeyPairGenerator _generator;
 
   SolanaKeyPairFactory(SolanaReference reference)
       : blockchainId = SolanaBlockchainId(reference);
@@ -218,7 +218,7 @@ class SolanaSeedKeyPairStrategy
   final SolanaReference reference;
   final Uint8List _seed;
   final int _index;
-  late final SolanaKeyPair _keyPair;
+  late SolanaKeyPair _keyPair;
 
   SolanaSeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
@@ -308,7 +308,7 @@ class SolanaPrivateKeyPairStrategy
         SolanaKeyPairVerifier {
   final SolanaBlockchainId blockchainId;
   final String privateKey;
-  late final SolanaKeyPair _keyPair;
+  late SolanaKeyPair _keyPair;
 
   SolanaPrivateKeyPairStrategy._(SolanaReference reference, this.privateKey)
       : blockchainId = SolanaBlockchainId(reference);

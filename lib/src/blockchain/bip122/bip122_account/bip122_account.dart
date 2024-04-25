@@ -75,8 +75,8 @@ class Bip122BlockchainAccount
         Bip122BlockchainAccountVerifier {
   @override
   final Bip122BlockchainAccountId blockchainAccountId;
-  late final Bip122BlockchainAccountSignerType _accountSigner;
-  late final Bip122BlockchainAccountVerifierType _accountVerifier;
+  late Bip122BlockchainAccountSignerType _accountSigner;
+  late Bip122BlockchainAccountVerifierType _accountVerifier;
 
   Bip122BlockchainAccount(Bip122Reference reference, Address accountAddress)
       : blockchainAccountId =
@@ -106,7 +106,7 @@ class Bip122BlockchainAccount
 class Bip122BlockchainAccountFactory
     implements Bip122BlockchainAccountFactoryType {
   final Bip122BlockchainId blockchainId;
-  late final Bip122BlockchainAccountGenerator _generator;
+  late Bip122BlockchainAccountGenerator _generator;
 
   Bip122BlockchainAccountFactory(Bip122Reference reference)
       : blockchainId = Bip122BlockchainId(reference);

@@ -41,10 +41,10 @@ extension Bip122CoinTypeExtension on Bip122Reference {
 }
 
 extension Bip122NetworkParamsExtension on Bip122Reference {
-  NetworkParams get networkParams {
+  Network get networkParams {
     switch (this) {
       case Bip122Reference.bitcoinMainnet:
-        return NetworkParams(
+        return Network(
           wifPrefix: 0x80,
           p2pkhPrefix: 0x00,
           p2shPrefix: 0x05,
@@ -52,9 +52,12 @@ extension Bip122NetworkParamsExtension on Bip122Reference {
           pubHDPrefix: 0x0488b21e,
           bech32Hrp: "bc",
           messagePrefix: "Bitcoin Signed Message:\n",
+          minFee: BigInt.from(1000),
+          minOutput: BigInt.from(10000),
+          feePerKb: BigInt.from(10000),
         );
       case Bip122Reference.bitcoinTestnet:
-        return NetworkParams(
+        return Network(
           wifPrefix: 0xef,
           p2pkhPrefix: 0x6f,
           p2shPrefix: 0xc4,
@@ -62,6 +65,9 @@ extension Bip122NetworkParamsExtension on Bip122Reference {
           pubHDPrefix: 0x043587cf,
           bech32Hrp: "tb",
           messagePrefix: "Bitcoin Signed Message:\n",
+          minFee: BigInt.from(1000),
+          minOutput: BigInt.from(10000),
+          feePerKb: BigInt.from(10000),
         );
     }
   }

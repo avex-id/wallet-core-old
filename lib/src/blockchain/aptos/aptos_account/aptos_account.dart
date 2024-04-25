@@ -79,8 +79,8 @@ class AptosBlockchainAccount
         AptosBlockchainAccountVerifier {
   @override
   final AptosBlockchainAccountId blockchainAccountId;
-  late final AptosBlockchainAccountSignerType _accountSigner;
-  late final AptosBlockchainAccountVerifier _accountVerifier;
+  late AptosBlockchainAccountSignerType _accountSigner;
+  late AptosBlockchainAccountVerifier _accountVerifier;
 
   AptosBlockchainAccount(
       AptosReference reference, AccountAddress accountAddress)
@@ -111,7 +111,7 @@ class AptosBlockchainAccount
 class AptosBlockchainAccountFactory
     implements AptosBlockchainAccountFactoryType {
   final AptosBlockchainId blockchainId;
-  late final AptosBlockchainAccountGenerator _generator;
+  late AptosBlockchainAccountGenerator _generator;
 
   AptosBlockchainAccountFactory(AptosReference reference)
       : blockchainId = AptosBlockchainId(reference);

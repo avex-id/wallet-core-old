@@ -82,8 +82,8 @@ class AptosKeyPair
   final AptosBlockchainId blockchainId;
   final AptosPublicKeyType _publicKey;
   final AptosPrivateKeyType? _privateKey;
-  late final AptosKeyPairSigner _signer;
-  late final AptosKeyPairVerifier _verifier;
+  late AptosKeyPairSigner _signer;
+  late AptosKeyPairVerifier _verifier;
 
   AptosKeyPair._(AptosReference reference, this._publicKey, this._privateKey)
       : blockchainId = AptosBlockchainId(reference);
@@ -122,13 +122,13 @@ class AptosKeyPair
   String get privateKey => (_privateKey == null)
       ? ''
       : HexString.fromUint8Array(
-              Uint8List.fromList(_privateKey!.bytes.sublist(0, 32)))
+              Uint8List.fromList(_privateKey.bytes.sublist(0, 32)))
           .hex();
 }
 
 class AptosKeyPairFactory implements AptosKeyPairFactoryType {
   final AptosBlockchainId blockchainId;
-  late final AptosKeyPairGenerator _generator;
+  late AptosKeyPairGenerator _generator;
 
   AptosKeyPairFactory(AptosReference reference)
       : blockchainId = AptosBlockchainId(reference);
@@ -189,7 +189,7 @@ class AptosSeedKeyPairStrategy
   final AptosReference reference;
   final Uint8List _seed;
   final int _index;
-  late final AptosKeyPair _keyPair;
+  late AptosKeyPair _keyPair;
 
   AptosSeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
@@ -253,7 +253,7 @@ class AptosPrivateKeyPairStrategy
         AptosKeyPairVerifier {
   final AptosBlockchainId blockchainId;
   final String privateKey;
-  late final AptosKeyPair _keyPair;
+  late AptosKeyPair _keyPair;
 
   AptosPrivateKeyPairStrategy._(AptosReference reference, this.privateKey)
       : blockchainId = AptosBlockchainId(reference);

@@ -96,8 +96,8 @@ class Eip155KeyPair
   final Eip155BlockchainId blockchainId;
   final Eip155PublicKeyType _publicKey;
   final Eip155PrivateKeyType? _privateKey;
-  late final Eip155KeyPairSigner _signer;
-  late final Eip155KeyPairVerifier _verifier;
+  late Eip155KeyPairSigner _signer;
+  late Eip155KeyPairVerifier _verifier;
 
   Eip155KeyPair._(Eip155Reference reference, this._publicKey, this._privateKey)
       : blockchainId = Eip155BlockchainId(reference);
@@ -178,12 +178,12 @@ class Eip155KeyPair
 
   @override
   String get privateKey =>
-      (_privateKey == null) ? '' : bytesToHex(_privateKey!.privateKey);
+      (_privateKey == null) ? '' : bytesToHex(_privateKey.privateKey);
 }
 
 class Eip155KeyPairFactory implements Eip155KeyPairFactoryType {
   final Eip155BlockchainId blockchainId;
-  late final Eip155KeyPairGenerator _generator;
+  late Eip155KeyPairGenerator _generator;
 
   Eip155KeyPairFactory(Eip155Reference reference)
       : blockchainId = Eip155BlockchainId(reference);
@@ -243,7 +243,7 @@ class Eip155SeedKeyPairStrategy
   final Eip155Reference reference;
   final Uint8List _seed;
   final int _index;
-  late final Eip155KeyPair _keyPair;
+  late Eip155KeyPair _keyPair;
 
   Eip155SeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
@@ -359,7 +359,7 @@ class Eip155PrivateKeyPairStrategy
         Eip155KeyPairVerifier {
   final Eip155BlockchainId blockchainId;
   final String privateKey;
-  late final Eip155KeyPair _keyPair;
+  late Eip155KeyPair _keyPair;
 
   Eip155PrivateKeyPairStrategy._(Eip155Reference reference, this.privateKey)
       : blockchainId = Eip155BlockchainId(reference);

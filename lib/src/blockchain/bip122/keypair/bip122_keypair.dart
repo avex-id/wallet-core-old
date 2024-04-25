@@ -85,8 +85,8 @@ class Bip122KeyPair
   final Bip122BlockchainId blockchainId;
   final Bip122PublicKeyType _publicKey;
   final Bip122PrivateKeyType? _privateKey;
-  late final Bip122KeyPairSigner _signer;
-  late final Bip122KeyPairVerifier _verifier;
+  late Bip122KeyPairSigner _signer;
+  late Bip122KeyPairVerifier _verifier;
 
   Bip122KeyPair._(Bip122Reference reference, this._publicKey, this._privateKey)
       : blockchainId = Bip122BlockchainId(reference);
@@ -143,14 +143,14 @@ class Bip122KeyPair
   String get privateKey => (_privateKey == null)
       ? ''
       : WIF(
-              privkey: _privateKey!,
+              privkey: _privateKey,
               version: blockchainId.reference.networkParams.wifPrefix)
           .toString();
 }
 
 class Bip122KeyPairFactory implements Bip122KeyPairFactoryType {
   final Bip122BlockchainId blockchainId;
-  late final Bip122KeyPairGenerator _generator;
+  late Bip122KeyPairGenerator _generator;
 
   Bip122KeyPairFactory(Bip122Reference reference)
       : blockchainId = Bip122BlockchainId(reference);
@@ -210,7 +210,7 @@ class Bip122SeedKeyPairStrategy
   final Bip122Reference reference;
   final Uint8List _seed;
   final int _index;
-  late final Bip122KeyPair _keyPair;
+  late Bip122KeyPair _keyPair;
 
   Bip122SeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
@@ -291,7 +291,7 @@ class Bip122PrivateKeyPairStrategy
         Bip122KeyPairVerifier {
   final Bip122BlockchainId blockchainId;
   final String privateKey;
-  late final Bip122KeyPair _keyPair;
+  late Bip122KeyPair _keyPair;
 
   Bip122PrivateKeyPairStrategy._(Bip122Reference reference, this.privateKey)
       : blockchainId = Bip122BlockchainId(reference);

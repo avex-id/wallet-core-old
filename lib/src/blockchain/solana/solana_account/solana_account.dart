@@ -76,8 +76,8 @@ class SolanaBlockchainAccount
         SolanaBlockchainAccountVerifier {
   @override
   final SolanaBlockchainAccountId blockchainAccountId;
-  late final SolanaBlockchainAccountSignerType _accountSigner;
-  late final SolanaBlockchainAccountVerifierType _accountVerifier;
+  late SolanaBlockchainAccountSignerType _accountSigner;
+  late SolanaBlockchainAccountVerifierType _accountVerifier;
 
   SolanaBlockchainAccount(
       SolanaReference reference, Ed25519HDPublicKey accountAddress)
@@ -108,7 +108,7 @@ class SolanaBlockchainAccount
 class SolanaBlockchainAccountFactory
     implements SolanaBlockchainAccountFactoryType {
   final SolanaBlockchainId blockchainId;
-  late final SolanaBlockchainAccountGenerator _generator;
+  late SolanaBlockchainAccountGenerator _generator;
 
   SolanaBlockchainAccountFactory(SolanaReference reference)
       : blockchainId = SolanaBlockchainId(reference);

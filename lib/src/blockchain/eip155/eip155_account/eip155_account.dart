@@ -83,8 +83,8 @@ class Eip155BlockchainAccount
         Eip155BlockchainAccountVerifier {
   @override
   final Eip155BlockchainAccountId blockchainAccountId;
-  late final Eip155BlockchainAccountSigner _accountSigner;
-  late final Eip155BlockchainAccountVerifier _accountVerifier;
+  late Eip155BlockchainAccountSigner _accountSigner;
+  late Eip155BlockchainAccountVerifier _accountVerifier;
 
   Eip155BlockchainAccount(
       Eip155Reference reference, EthereumAddress accountAddress)
@@ -130,7 +130,7 @@ class Eip155BlockchainAccount
 class Eip155BlockchainAccountFactory
     implements Eip155BlockchainAccountFactoryType {
   final Eip155BlockchainId blockchainId;
-  late final Eip155BlockchainAccountGenerator _generator;
+  late Eip155BlockchainAccountGenerator _generator;
 
   Eip155BlockchainAccountFactory(Eip155Reference reference)
       : blockchainId = Eip155BlockchainId(reference);
