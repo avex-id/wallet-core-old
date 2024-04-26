@@ -175,7 +175,7 @@ class AptosKeyPairFactory implements AptosKeyPairFactoryType {
 
   AptosPrivateKeyType _fromPrivateKeyHex(String privateKey) {
     final List<int> prKey = HexString(privateKey).toUint8Array();
-    final sk = ed25519.newKeyFromSeed(prKey as Uint8List);
+    final sk = ed25519.newKeyFromSeed(Uint8List.fromList(prKey));
     return sk;
   }
 }
@@ -211,7 +211,7 @@ class AptosSeedKeyPairStrategy
   Future<String> sign(String message) async {
     AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= await _fromSeedAndIndex(_seed, _index);
-    final signature = ed25519.sign(secretKey, (message.codeUnits as Uint8List));
+    final signature = ed25519.sign(secretKey, Uint8List.fromList(message.codeUnits));
     return HexString.fromUint8Array(signature.sublist(0, 64)).hex();
   }
 
@@ -219,8 +219,8 @@ class AptosSeedKeyPairStrategy
   @override
   Future<bool> verifySignature(String message, String signature) async {
     AptosPublicKeyType publicKey = await _keyPair.extractPublicKey();
-    return ed25519.verify(publicKey, (message.codeUnits as Uint8List),
-        (signature.codeUnits as Uint8List));
+    return ed25519.verify(publicKey, Uint8List.fromList(message.codeUnits),
+        HexString(signature).toUint8Array());
   }
 
   Future<AptosPrivateKeyType> _fromSeedAndIndex(
@@ -276,7 +276,7 @@ class AptosPrivateKeyPairStrategy
   Future<String> sign(String message) async {
     AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
     secretKey ??= _fromPrivateKeyHex(privateKey);
-    final signature = ed25519.sign(secretKey, (message.codeUnits as Uint8List));
+    final signature = ed25519.sign(secretKey, Uint8List.fromList(message.codeUnits));
     return HexString.fromUint8Array(signature.sublist(0, 64)).hex();
   }
 
@@ -284,13 +284,13 @@ class AptosPrivateKeyPairStrategy
   @override
   Future<bool> verifySignature(String message, String signature) async {
     AptosPublicKeyType publicKey = await _keyPair.extractPublicKey();
-    return ed25519.verify(publicKey, (message.codeUnits as Uint8List),
-        (signature.codeUnits as Uint8List));
+    return ed25519.verify(publicKey, Uint8List.fromList(message.codeUnits),
+        HexString(signature).toUint8Array());
   }
 
   AptosPrivateKeyType _fromPrivateKeyHex(String privateKey) {
     final List<int> prKey = HexString(privateKey).toUint8Array();
-    final sk = ed25519.newKeyFromSeed(prKey as Uint8List);
+    final sk = ed25519.newKeyFromSeed(Uint8List.fromList(prKey));
     return sk;
   }
 }

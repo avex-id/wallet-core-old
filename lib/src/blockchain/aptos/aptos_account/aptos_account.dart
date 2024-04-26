@@ -156,7 +156,7 @@ class AptosKeyPairBlockchainAccountStrategy
   @override
   Future<AptosBlockchainAccount> generate() async {
     final authKey = AuthenticationKey.fromEd25519PublicKey(Ed25519PublicKey(
-        (await _keyPair.extractPublicKey()).bytes as Uint8List));
+        Uint8List.fromList((await _keyPair.extractPublicKey()).bytes)));
     return AptosBlockchainAccountFactory(_keyPair.blockchainId.reference)
         .fromString(authKey.derivedAddress().hex());
   }

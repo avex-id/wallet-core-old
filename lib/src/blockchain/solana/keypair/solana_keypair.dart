@@ -1,7 +1,6 @@
 import 'dart:typed_data';
 
 import 'package:solana/base58.dart';
-import 'package:solana/encoder.dart';
 import 'package:solana/solana.dart';
 import '../../../domain/common/keypair/keypair.dart';
 import '../../../domain/common/keypair/strategy/private_key_strategy.dart';
