@@ -63,13 +63,13 @@ Future<void> main() async {
     aliceKeyPair.signer = aliceSeedStrategy;
     aliceKeyPair.verifier = aliceSeedStrategy;
 
-    // Bob Keypair
-    SeedKeyPairStrategy bobSeedStrategy =
-        seedStrategyFactory.createFromSeedAndIndex(mnemonic.toSeed, 1);
-    keyPairFactory.generator = bobSeedStrategy;
-    final bobKeyPair = await keyPairFactory.generate();
-    bobKeyPair.signer = bobSeedStrategy;
-    bobKeyPair.verifier = bobSeedStrategy;
+    // // Bob Keypair
+    // SeedKeyPairStrategy bobSeedStrategy =
+    //     seedStrategyFactory.createFromSeedAndIndex(mnemonic.toSeed, 1);
+    // keyPairFactory.generator = bobSeedStrategy;
+    // final bobKeyPair = await keyPairFactory.generate();
+    // bobKeyPair.signer = bobSeedStrategy;
+    // bobKeyPair.verifier = bobSeedStrategy;
 
     // Alice Account
     final aliceKeyPairStrategy =
@@ -79,20 +79,25 @@ Future<void> main() async {
     aliceAccount.signer = aliceKeyPairStrategy;
     aliceAccount.verifier = aliceKeyPairStrategy;
 
-    // Bob Account
-    final bobKeyPairStrategy =
-        keyPairBlockchainAccountStrategyFactory.createFromKeyPair(bobKeyPair);
-    accountFactory.generator = bobKeyPairStrategy;
-    final bobAccount = await accountFactory.generate();
-    bobAccount.signer = bobKeyPairStrategy;
-    bobAccount.verifier = bobKeyPairStrategy;
+    // // Bob Account
+    // final bobKeyPairStrategy =
+    //     keyPairBlockchainAccountStrategyFactory.createFromKeyPair(bobKeyPair);
+    // accountFactory.generator = bobKeyPairStrategy;
+    // final bobAccount = await accountFactory.generate();
+    // bobAccount.signer = bobKeyPairStrategy;
+    // bobAccount.verifier = bobKeyPairStrategy;
 
-    final aliceSignedData = await aliceAccount.sign(toBeSignedMessage);
+    final aliceSignature = await aliceAccount.sign(toBeSignedMessage);
+    final aliceSignatureVerificationStatus =
+        await aliceAccount.verifySignature(toBeSignedMessage, aliceSignature);
     print(
-        "Alice Account ${aliceAccount.blockchainAccountId.address} Signature: $aliceSignedData\n");
+        "\nAlice Account ${aliceAccount.blockchainAccountId.address}\nSigned: $toBeSignedMessage\nSignature: $aliceSignature\nVerification Status: $aliceSignatureVerificationStatus\n");
 
-    final bobSignedData = await bobAccount.sign(toBeSignedMessage);
-    print(
-        "Bob Account ${bobAccount.blockchainAccountId.address} Signature: $bobSignedData\n");
+    // final bobSignature = await bobAccount.sign(toBeSignedMessage);
+    // final bobSignatureVerificationStatus =
+    //     await bobAccount.verifySignature(toBeSignedMessage, bobSignature);
+    // print(
+    //     "Bob Account ${bobAccount.blockchainAccountId.address}\nSigned: $toBeSignedMessage\nSignature: $bobSignature\nVerification Status: $bobSignatureVerificationStatus\n");
+
   }
 }
