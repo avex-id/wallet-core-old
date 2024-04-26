@@ -4,7 +4,7 @@ import 'package:coinlib/coinlib.dart';
 import 'package:wallet_core/wallet_core.dart';
 
 // Nonce for Backend AuthV2/User/User Data/Get Nonce
-const toBeSignedMessage = "ecb969e2-d688-4cdd-82d7-7f94cb7f6f02";
+const toBeSignedMessage = "hello world !";
 
 // Blockchain ID # CAIP-2 Format https://github.com/ChainAgnostic/CAIPs/blob/main/CAIPs/caip-2.md
 final List<BlockchainId> blockchainIds = [
@@ -41,34 +41,63 @@ Future<void> main() async {
   }
 
   for (var blockchainId in blockchainIds) {
-    // Generate KeyPair
-    SeedKeyPairStrategy seedStrategy =
-        SeedKeyPairStrategyProducer.getFactory(blockchainId.reference)
-            .createFromSeedAndIndex(mnemonic.toSeed, 0);
+    // Generate Factory
+    final SeedKeyPairStrategyFactory seedStrategyFactory =
+        SeedKeyPairStrategyProducer.getFactory(blockchainId.reference);
+    // final PrivateKeyPairStrategyFactory privateKeyStrategyFactory =
+    //    PrivateKeyPairStrategyProducer.getFactory(blockchainId.reference);
+    final KeyPairFactory keyPairFactory =
+        KeyPairFactoryProducer.getFactory(blockchainId.reference);
+    final KeyPairBlockchainAccountStrategyFactory
+        keyPairBlockchainAccountStrategyFactory =
+        KeyPairBlockchainAccountStrategyProducer.getFactory(
+            blockchainId.reference);
+    final BlockchainAccountFactory accountFactory =
+        BlockchainAccountFactoryProducer.getFactory(blockchainId.reference);
 
-    // PrivateKeyPairStrategy privateKeyStrategy =
-    //     PrivateKeyPairStrategyProducer.getFactory(blockchainId.reference)
-    //         .createFromPrivateKeyString(privateKey);
+    // Alice Keypair
+    SeedKeyPairStrategy aliceSeedStrategy =
+        seedStrategyFactory.createFromSeedAndIndex(mnemonic.toSeed, 0);
+    keyPairFactory.generator = aliceSeedStrategy;
+    final aliceKeyPair = await keyPairFactory.generate();
+    aliceKeyPair.signer = aliceSeedStrategy;
+    aliceKeyPair.verifier = aliceSeedStrategy;
 
-    final keyPairFactory =
-        KeyPairFactoryProducer.getFactory(blockchainId.reference)
-          ..setGenerator(seedStrategy);
-    final keyPair = await keyPairFactory.generate();
-    keyPair.setSigner(seedStrategy);
-    // Generate Blockchain Account
-    final keyPairStrategy = KeyPairBlockchainAccountStrategyProducer.getFactory(
-            blockchainId.reference)
-        .createFromKeyPair(keyPair);
-    final accountFactory =
-        BlockchainAccountFactoryProducer.getFactory(blockchainId.reference)
-          ..setGenerator(keyPairStrategy);
-    final account = await accountFactory.generate();
-    account.setAccountSigner(keyPairStrategy);
+    // // Bob Keypair
+    // SeedKeyPairStrategy bobSeedStrategy =
+    //     seedStrategyFactory.createFromSeedAndIndex(mnemonic.toSeed, 1);
+    // keyPairFactory.generator = bobSeedStrategy;
+    // final bobKeyPair = await keyPairFactory.generate();
+    // bobKeyPair.signer = bobSeedStrategy;
+    // bobKeyPair.verifier = bobSeedStrategy;
+
+    // Alice Account
+    final aliceKeyPairStrategy =
+        keyPairBlockchainAccountStrategyFactory.createFromKeyPair(aliceKeyPair);
+    accountFactory.generator = aliceKeyPairStrategy;
+    final aliceAccount = await accountFactory.generate();
+    aliceAccount.signer = aliceKeyPairStrategy;
+    aliceAccount.verifier = aliceKeyPairStrategy;
+
+    // // Bob Account
+    // final bobKeyPairStrategy =
+    //     keyPairBlockchainAccountStrategyFactory.createFromKeyPair(bobKeyPair);
+    // accountFactory.generator = bobKeyPairStrategy;
+    // final bobAccount = await accountFactory.generate();
+    // bobAccount.signer = bobKeyPairStrategy;
+    // bobAccount.verifier = bobKeyPairStrategy;
+
+    final aliceSignature = await aliceAccount.sign(toBeSignedMessage);
+    final aliceSignatureVerificationStatus =
+        await aliceAccount.verifySignature(toBeSignedMessage, aliceSignature);
     print(
-        "${account.blockchainAccountId.blockchainId.reference.name} Account: ${account.blockchainAccountId.address}");
-    print(
-        "Public Key: ${keyPair.publicKey}\nPrivate Key: ${keyPair.privateKey}");
-    final signedData = await account.signMessage(toBeSignedMessage);
-    print("Signed Hash for message: $toBeSignedMessage: $signedData\n");
+        "\nBlockchain: ${aliceAccount.blockchainAccountId.blockchainId.toString()}\nAlice Account ${aliceAccount.blockchainAccountId.address}\nSigned: $toBeSignedMessage\nSignature: $aliceSignature\nVerification Status: $aliceSignatureVerificationStatus\n");
+
+    // final bobSignature = await bobAccount.sign(toBeSignedMessage);
+    // final bobSignatureVerificationStatus =
+    //     await bobAccount.verifySignature(toBeSignedMessage, bobSignature);
+    // print(
+    //     "Bob Account ${bobAccount.blockchainAccountId.address}\nSigned: $toBeSignedMessage\nSignature: $bobSignature\nVerification Status: $bobSignatureVerificationStatus\n");
+
   }
 }

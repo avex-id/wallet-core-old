@@ -85,8 +85,8 @@ class Bip122KeyPair
   final Bip122BlockchainId blockchainId;
   final Bip122PublicKeyType _publicKey;
   final Bip122PrivateKeyType? _privateKey;
-  late final Bip122KeyPairSigner _signer;
-  late final Bip122KeyPairVerifier _verifier;
+  late Bip122KeyPairSigner _signer;
+  late Bip122KeyPairVerifier _verifier;
 
   Bip122KeyPair._(Bip122Reference reference, this._publicKey, this._privateKey)
       : blockchainId = Bip122BlockchainId(reference);
@@ -102,8 +102,8 @@ class Bip122KeyPair
   }
 
   @override
-  Future<String> signMessage(String message) async {
-    return _signer.signMessage(message);
+  Future<String> sign(String message) async {
+    return _signer.sign(message);
   }
 
   @override
@@ -120,8 +120,8 @@ class Bip122KeyPair
   // }
 
   @override
-  Future<bool> verify(String message, String signature) async {
-    return _verifier.verify(message, signature);
+  Future<bool> verifySignature(String message, String signature) async {
+    return _verifier.verifySignature(message, signature);
   }
 
   @override
@@ -131,10 +131,10 @@ class Bip122KeyPair
   }
 
   @override
-  void setSigner(Bip122KeyPairSigner signer) => _signer = signer;
+  set signer(Bip122KeyPairSigner signer) => _signer = signer;
 
   @override
-  void setVerifier(Bip122KeyPairVerifier verifier) => _verifier = verifier;
+  set verifier(Bip122KeyPairVerifier verifier) => _verifier = verifier;
 
   @override
   String get publicKey => _publicKey.hex;
@@ -143,14 +143,14 @@ class Bip122KeyPair
   String get privateKey => (_privateKey == null)
       ? ''
       : WIF(
-              privkey: _privateKey!,
+              privkey: _privateKey,
               version: blockchainId.reference.networkParams.wifPrefix)
           .toString();
 }
 
 class Bip122KeyPairFactory implements Bip122KeyPairFactoryType {
   final Bip122BlockchainId blockchainId;
-  late final Bip122KeyPairGenerator _generator;
+  late Bip122KeyPairGenerator _generator;
 
   Bip122KeyPairFactory(Bip122Reference reference)
       : blockchainId = Bip122BlockchainId(reference);
@@ -186,7 +186,7 @@ class Bip122KeyPairFactory implements Bip122KeyPairFactoryType {
   }
 
   @override
-  void setGenerator(Bip122KeyPairGenerator generator) => _generator = generator;
+  set generator(Bip122KeyPairGenerator generator) => _generator = generator;
 
   Bip122PublicKeyType _fromPrivateKey(WIF wif) {
     return wif.privkey.pubkey;
@@ -210,7 +210,7 @@ class Bip122SeedKeyPairStrategy
   final Bip122Reference reference;
   final Uint8List _seed;
   final int _index;
-  late final Bip122KeyPair _keyPair;
+  late Bip122KeyPair _keyPair;
 
   Bip122SeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
@@ -229,7 +229,7 @@ class Bip122SeedKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     return (await personalSign(message)).toString();
   }
 
@@ -247,7 +247,7 @@ class Bip122SeedKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     Bip122PublicKeyType pbKey = await recoverSignature(message, signature);
     return pbKey == await _keyPair.extractPublicKey();
   }
@@ -291,7 +291,7 @@ class Bip122PrivateKeyPairStrategy
         Bip122KeyPairVerifier {
   final Bip122BlockchainId blockchainId;
   final String privateKey;
-  late final Bip122KeyPair _keyPair;
+  late Bip122KeyPair _keyPair;
 
   Bip122PrivateKeyPairStrategy._(Bip122Reference reference, this.privateKey)
       : blockchainId = Bip122BlockchainId(reference);
@@ -311,7 +311,7 @@ class Bip122PrivateKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     return (await personalSign(message)).toString();
   }
 
@@ -333,7 +333,7 @@ class Bip122PrivateKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     Bip122PublicKeyType pbKey = await recoverSignature(message, signature);
     return pbKey == await _keyPair.extractPublicKey();
   }

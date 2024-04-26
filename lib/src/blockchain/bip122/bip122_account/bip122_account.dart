@@ -1,5 +1,6 @@
 import 'package:coinlib/coinlib.dart';
 import '../../../domain/common/blockchain_account/blockchain_account.dart';
+import '../../../domain/common/blockchain_account/strategy/keypair_strategy.dart';
 import '../bip122_account_id/bip122_account_id.dart';
 import '../bip122_blockchain_id/bip122_blockchain_id.dart';
 import '../bip122_blockchain_id/bip122_blockchain_reference.dart';
@@ -9,21 +10,27 @@ typedef Bip122BlockchainAccountGeneratorType = BlockchainAccountGenerator<
     Bip122BlockchainAccount,
     Bip122BlockchainAccountId,
     Bip122BlockchainAccountSigner,
+    Bip122BlockchainAccountVerifier,
     Bip122BlockchainId,
     Address>;
 
 typedef Bip122BlockchainAccountSignerType
     = BlockchainAccountSigner<Bip122BlockchainId>;
 
+typedef Bip122BlockchainAccountVerifierType
+    = BlockchainAccountVerifier<Bip122BlockchainId>;
+
 typedef Bip122BlockchainAccountType = BlockchainAccount<
     Bip122BlockchainAccountId,
     Bip122BlockchainAccountSigner,
+    Bip122BlockchainAccountVerifier,
     Bip122BlockchainId,
     Address>;
 typedef Bip122BlockchainAccountFactoryType = BlockchainAccountFactory<
     Bip122BlockchainAccount,
     Bip122BlockchainAccountId,
     Bip122BlockchainAccountSigner,
+    Bip122BlockchainAccountVerifier,
     Bip122BlockchainAccountGenerator,
     Bip122BlockchainId,
     Address>;
@@ -33,6 +40,7 @@ typedef Bip122KeyPairBlockchainAccountStrategyType
         Bip122BlockchainAccount,
         Bip122BlockchainAccountId,
         Bip122BlockchainAccountSigner,
+        Bip122BlockchainAccountVerifier,
         Bip122BlockchainId,
         Address>;
 
@@ -41,6 +49,7 @@ typedef Bip122BlockchainAccountStrategyFactoryType
         Bip122BlockchainAccount,
         Bip122BlockchainAccountId,
         Bip122BlockchainAccountSigner,
+        Bip122BlockchainAccountVerifier,
         Bip122BlockchainId,
         Address,
         ECPublicKey,
@@ -53,33 +62,51 @@ typedef Bip122BlockchainAccountStrategyFactoryType
 abstract class Bip122BlockchainAccountSigner
     implements Bip122BlockchainAccountSignerType {}
 
+abstract class Bip122BlockchainAccountVerifier
+    implements BlockchainAccountVerifier<Bip122BlockchainId> {}
+
 abstract class Bip122BlockchainAccountGenerator
     implements Bip122BlockchainAccountGeneratorType {}
 
-class Bip122BlockchainAccount implements Bip122BlockchainAccountType {
+class Bip122BlockchainAccount
+    implements
+        Bip122BlockchainAccountType,
+        Bip122BlockchainAccountSigner,
+        Bip122BlockchainAccountVerifier {
   @override
   final Bip122BlockchainAccountId blockchainAccountId;
-  late final Bip122BlockchainAccountSignerType _accountSigner;
+  late Bip122BlockchainAccountSignerType _accountSigner;
+  late Bip122BlockchainAccountVerifierType _accountVerifier;
 
   Bip122BlockchainAccount(Bip122Reference reference, Address accountAddress)
       : blockchainAccountId =
             Bip122BlockchainAccountId(reference, accountAddress);
 
   @override
-  Future<String> signMessage(String message) {
-    return _accountSigner.signMessage(message);
+  Future<String> sign(String message) {
+    return _accountSigner.sign(message);
   }
 
   @override
-  void setAccountSigner(Bip122BlockchainAccountSignerType accountSigner) {
+  Future<bool> verifySignature(String message, String signature) {
+    return _accountVerifier.verifySignature(message, signature);
+  }
+
+  @override
+  set signer(Bip122BlockchainAccountSignerType accountSigner) {
     _accountSigner = accountSigner;
+  }
+
+  @override
+  set verifier(Bip122BlockchainAccountVerifierType accountVerifier) {
+    _accountVerifier = accountVerifier;
   }
 }
 
 class Bip122BlockchainAccountFactory
     implements Bip122BlockchainAccountFactoryType {
   final Bip122BlockchainId blockchainId;
-  late final Bip122BlockchainAccountGenerator _generator;
+  late Bip122BlockchainAccountGenerator _generator;
 
   Bip122BlockchainAccountFactory(Bip122Reference reference)
       : blockchainId = Bip122BlockchainId(reference);
@@ -103,7 +130,7 @@ class Bip122BlockchainAccountFactory
   }
 
   @override
-  void setGenerator(Bip122BlockchainAccountGenerator generator) {
+  set generator(Bip122BlockchainAccountGenerator generator) {
     _generator = generator;
   }
 }
@@ -131,8 +158,13 @@ class Bip122KeyPairBlockchainAccountStrategy
   }
 
   @override
-  Future<String> signMessage(String message) async {
-    return _keyPair.signMessage(message);
+  Future<String> sign(String message) async {
+    return _keyPair.sign(message);
+  }
+
+  @override
+  Future<bool> verifySignature(String message, String signature) {
+    return _keyPair.verifySignature(message, signature);
   }
 }
 
@@ -142,6 +174,7 @@ class Bip122KeyPairBlockchainAccountStrategyFactory
             Bip122BlockchainAccount,
             Bip122BlockchainAccountId,
             Bip122BlockchainAccountSigner,
+            Bip122BlockchainAccountVerifier,
             Bip122BlockchainId,
             Address,
             ECPublicKey,

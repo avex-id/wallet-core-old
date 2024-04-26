@@ -2,10 +2,10 @@ import '../../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 
 enum Eip155Reference implements BlockchainReference {
   ethereumMainnet('1', 'Ethereum Mainnet'),
-  ethereumGoerli('5', 'Ethereum Goerli'),
-  // ethereumSepolia('11155111', 'Ethereum Sepolia'),
-  // polygonMainnet('137', 'Polygon Mainnet'),
-  // polygonMumbai('80001', 'Polygon Mumbai'),
+  // ethereumGoerli('5', 'Ethereum Goerli'),
+  ethereumSepolia('11155111', 'Ethereum Sepolia'),
+  polygonMainnet('137', 'Polygon Mainnet'),
+  polygonMumbai('80001', 'Polygon Mumbai');
   // polygonZkEvm('1101', 'Polygon ZK-EVM'),
   // polygonZkEvmTestnet('1442', 'Polygon ZK-EVM Testnet'),
   // arbitrumOne('42161', 'Arbitrum One'),
@@ -20,7 +20,7 @@ enum Eip155Reference implements BlockchainReference {
   // bnbSmartChainMainnet('56', 'BNB Smart Chain Mainnet'),
   // bnbSmartChainTestnet('97', 'BNB Smart Chain Testnet'),
   // optimismMainnet('10', 'Optimism Mainnet'),
-  optimismGoerli('69', 'Optimism Kovan');
+  // optimismGoerli('69', 'Optimism Kovan');
 
   const Eip155Reference(this.value, this.name);
 
@@ -37,14 +37,14 @@ enum Eip155Reference implements BlockchainReference {
     switch (reference) {
       case '1':
         return Eip155Reference.ethereumMainnet;
-      case '5':
-        return Eip155Reference.ethereumGoerli;
-      // case '11155111':
-      //   return Eip155Reference.ethereumSepolia;
-      // case '137':
-      //   return Eip155Reference.polygonMainnet;
-      // case '80001':
-      //   return Eip155Reference.polygonMumbai;
+      // case '5':
+      //   return Eip155Reference.ethereumGoerli;
+      case '11155111':
+        return Eip155Reference.ethereumSepolia;
+      case '137':
+        return Eip155Reference.polygonMainnet;
+      case '80001':
+        return Eip155Reference.polygonMumbai;
       // case '1101':
       //   return Eip155Reference.polygonZkEvm;
       // case '1442':
@@ -73,8 +73,8 @@ enum Eip155Reference implements BlockchainReference {
       //   return Eip155Reference.bnbSmartChainTestnet;
       // case '10':
       //   return Eip155Reference.optimismMainnet;
-      case '69':
-        return Eip155Reference.optimismGoerli;
+      // case '69':
+      //   return Eip155Reference.optimismGoerli;
       default:
         throw Exception("Unknown blockchain reference: $reference");
     }

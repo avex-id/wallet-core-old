@@ -6,6 +6,7 @@ import '../../blockchain/solana/solana_account/solana_account.dart';
 import '../../blockchain/solana/solana_blockchain_id/solana_blockchain_reference.dart';
 import '../../blockchain/aptos/aptos_account/aptos_account.dart';
 import '../../blockchain/aptos/aptos_blockchain_id/aptos_blockchain_reference.dart';
+import '../../domain/common/blockchain_account/strategy/keypair_strategy.dart';
 import '../../domain/common/caip/blockchain_id/blockchain_reference.dart';
 import '../../domain/common/blockchain_account/blockchain_account.dart';
 

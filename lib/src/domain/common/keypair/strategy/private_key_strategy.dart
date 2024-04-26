@@ -1,6 +1,4 @@
-
 import '../keypair.dart';
-
 
 abstract class PrivateKeyPairStrategy<
         PublicKeyType,

@@ -1,10 +1,9 @@
 abstract class KeyPairSigner<PublicKeyType, PrivateKeyType> {
-  Future<String> signMessage(String message);
-  // Future<String> signTransaction(String message);
+  Future<String> sign(String message);
 }
 
 abstract class KeyPairVerifier<PublicKeyType, PrivateKeyType> {
-  Future<bool> verify(String message, String signature);
+  Future<bool> verifySignature(String message, String signature);
 }
 
 abstract class KeyPairGenerator<
@@ -31,8 +30,8 @@ abstract class KeyPair<
   Future<PrivateKeyType?> extractSecretKey();
   String get publicKey;
   String get privateKey;
-  void setSigner(KeyPairSignerType signer);
-  void setVerifier(KeyPairVerifierType verifier);
+  set signer(KeyPairSignerType signer);
+  set verifier(KeyPairVerifierType verifier);
 }
 
 abstract class KeyPairFactory<
@@ -55,5 +54,5 @@ abstract class KeyPairFactory<
   Future<KeyPairType> fromPrivateKeyString(String privateKey);
   Future<KeyPairType> fromPublicKey(PublicKeyType publicKey);
   Future<KeyPairType> fromPublicKeyString(String privateKey);
-  void setGenerator(KeyPairGeneratorType generator);
+  set generator(KeyPairGeneratorType generator);
 }

@@ -96,8 +96,8 @@ class Eip155KeyPair
   final Eip155BlockchainId blockchainId;
   final Eip155PublicKeyType _publicKey;
   final Eip155PrivateKeyType? _privateKey;
-  late final Eip155KeyPairSigner _signer;
-  late final Eip155KeyPairVerifier _verifier;
+  late Eip155KeyPairSigner _signer;
+  late Eip155KeyPairVerifier _verifier;
 
   Eip155KeyPair._(Eip155Reference reference, this._publicKey, this._privateKey)
       : blockchainId = Eip155BlockchainId(reference);
@@ -116,8 +116,8 @@ class Eip155KeyPair
   }
 
   @override
-  Future<String> signMessage(String message) async {
-    return _signer.signMessage(message);
+  Future<String> sign(String message) async {
+    return _signer.sign(message);
   }
 
   @override
@@ -151,8 +151,8 @@ class Eip155KeyPair
   // }
 
   @override
-  Future<bool> verify(String message, String signature) async {
-    return _verifier.verify(message, signature);
+  Future<bool> verifySignature(String message, String signature) async {
+    return _verifier.verifySignature(message, signature);
   }
 
   @override
@@ -168,22 +168,22 @@ class Eip155KeyPair
   }
 
   @override
-  void setSigner(Eip155KeyPairSigner signer) => _signer = signer;
+  set signer(Eip155KeyPairSigner signer) => _signer = signer;
 
   @override
-  void setVerifier(Eip155KeyPairVerifier verifier) => _verifier = verifier;
+  set verifier(Eip155KeyPairVerifier verifier) => _verifier = verifier;
 
   @override
   String get publicKey => _publicKey.hexEip55;
 
   @override
   String get privateKey =>
-      (_privateKey == null) ? '' : bytesToHex(_privateKey!.privateKey);
+      (_privateKey == null) ? '' : bytesToHex(_privateKey.privateKey);
 }
 
 class Eip155KeyPairFactory implements Eip155KeyPairFactoryType {
   final Eip155BlockchainId blockchainId;
-  late final Eip155KeyPairGenerator _generator;
+  late Eip155KeyPairGenerator _generator;
 
   Eip155KeyPairFactory(Eip155Reference reference)
       : blockchainId = Eip155BlockchainId(reference);
@@ -219,7 +219,7 @@ class Eip155KeyPairFactory implements Eip155KeyPairFactoryType {
   }
 
   @override
-  void setGenerator(Eip155KeyPairGenerator generator) => _generator = generator;
+  set generator(Eip155KeyPairGenerator generator) => _generator = generator;
 
   Credentials _fromPrivateKey(Eip155PrivateKeyType key) {
     return key;
@@ -243,7 +243,7 @@ class Eip155SeedKeyPairStrategy
   final Eip155Reference reference;
   final Uint8List _seed;
   final int _index;
-  late final Eip155KeyPair _keyPair;
+  late Eip155KeyPair _keyPair;
 
   Eip155SeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
@@ -263,7 +263,7 @@ class Eip155SeedKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     return personalSign(message);
   }
 
@@ -306,7 +306,7 @@ class Eip155SeedKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     Eip155PublicKeyType recoveredKey =
         await recoverPersonalSignature(message, signature);
     Eip155PublicKeyType expectedPublicKey = await _keyPair.extractPublicKey();
@@ -359,7 +359,7 @@ class Eip155PrivateKeyPairStrategy
         Eip155KeyPairVerifier {
   final Eip155BlockchainId blockchainId;
   final String privateKey;
-  late final Eip155KeyPair _keyPair;
+  late Eip155KeyPair _keyPair;
 
   Eip155PrivateKeyPairStrategy._(Eip155Reference reference, this.privateKey)
       : blockchainId = Eip155BlockchainId(reference);
@@ -379,7 +379,7 @@ class Eip155PrivateKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
+  Future<String> sign(String message) async {
     return personalSign(message);
   }
 
@@ -423,7 +423,7 @@ class Eip155PrivateKeyPairStrategy
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
+  Future<bool> verifySignature(String message, String signature) async {
     Eip155PublicKeyType recoveredKey =
         await recoverPersonalSignature(message, signature);
     Eip155PublicKeyType expectedPublicKey = await _keyPair.extractPublicKey();

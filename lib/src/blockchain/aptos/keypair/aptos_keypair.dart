@@ -1,11 +1,11 @@
 import 'dart:typed_data';
 
 import 'package:aptos/aptos.dart';
+import 'package:ed25519_edwards/ed25519_edwards.dart' as ed25519;
 import '../../../domain/common/keypair/keypair.dart';
 import '../../../domain/common/keypair/strategy/private_key_strategy.dart';
 import '../../../domain/common/keypair/strategy/seed_strategy.dart';
 import '../bip44/bip44.dart';
-import 'package:ed25519_edwards/ed25519_edwards.dart' as ed25519;
 import '../aptos_blockchain_id/aptos_blockchain_id.dart';
 import '../aptos_blockchain_id/aptos_blockchain_reference.dart';
 
@@ -71,11 +71,7 @@ typedef AptosPrivateKeyPairStrategyFactoryType = PrivateKeyPairStrategyFactory<
     AptosKeyPairGenerator,
     AptosPrivateKeyPairStrategy>;
 
-abstract class AptosKeyPairSigner extends AptosKeyPairSignerType {
-  Future<String> signTransaction(String message);
-  // Future<String> signCompiledMessage(CompiledMessage message);
-  // Future<SignedTx> signCompiledMessageForTransaction(CompiledMessage message);
-}
+abstract class AptosKeyPairSigner extends AptosKeyPairSignerType {}
 
 abstract class AptosKeyPairVerifier extends AptosKeyPairVerifierType {}
 
@@ -86,8 +82,8 @@ class AptosKeyPair
   final AptosBlockchainId blockchainId;
   final AptosPublicKeyType _publicKey;
   final AptosPrivateKeyType? _privateKey;
-  late final AptosKeyPairSigner _signer;
-  late final AptosKeyPairVerifier _verifier;
+  late AptosKeyPairSigner _signer;
+  late AptosKeyPairVerifier _verifier;
 
   AptosKeyPair._(AptosReference reference, this._publicKey, this._privateKey)
       : blockchainId = AptosBlockchainId(reference);
@@ -103,45 +99,20 @@ class AptosKeyPair
   }
 
   @override
-  Future<String> signMessage(String message) async {
-    return _signer.signMessage(message);
+  Future<String> sign(String message) async {
+    return _signer.sign(message);
   }
 
   @override
-  Future<String> signTransaction(String message) async {
-    return _signer.signTransaction(message);
-  }
-// !  ----------COMMENTED-------------------
-  // @override
-  // Future<String> personalSign(String message) async {
-  //   return _signer.signMessage(message);
-  // }
-
-  // @override
-  // Future<String> signCompiledMessage(CompiledMessage message) async {
-  //   return _signer.signCompiledMessage(message);
-  // }
-
-  // @override
-  // Future<SignedTx> signCompiledMessageForTransaction(
-  //     CompiledMessage message) async {
-  //   return _signer.signCompiledMessageForTransaction(message);
-  // }
-  // @override
-  // Future<String> signTransaction(String message) async {
-  //   return _signer.signTransaction(message);
-  // }
-// ! ----------COMMENTED--------------------
-  @override
-  Future<bool> verify(String message, String signature) async {
-    return _verifier.verify(message, signature);
+  Future<bool> verifySignature(String message, String signature) async {
+    return _verifier.verifySignature(message, signature);
   }
 
   @override
-  void setSigner(AptosKeyPairSigner signer) => _signer = signer;
+  set signer(AptosKeyPairSigner signer) => _signer = signer;
 
   @override
-  void setVerifier(AptosKeyPairVerifier verifier) => _verifier = verifier;
+  set verifier(AptosKeyPairVerifier verifier) => _verifier = verifier;
 
   @override
   String get publicKey =>
@@ -151,13 +122,13 @@ class AptosKeyPair
   String get privateKey => (_privateKey == null)
       ? ''
       : HexString.fromUint8Array(
-              Uint8List.fromList(_privateKey!.bytes.sublist(0, 32)))
+              Uint8List.fromList(_privateKey.bytes.sublist(0, 32)))
           .hex();
 }
 
 class AptosKeyPairFactory implements AptosKeyPairFactoryType {
   final AptosBlockchainId blockchainId;
-  late final AptosKeyPairGenerator _generator;
+  late AptosKeyPairGenerator _generator;
 
   AptosKeyPairFactory(AptosReference reference)
       : blockchainId = AptosBlockchainId(reference);
@@ -192,7 +163,7 @@ class AptosKeyPairFactory implements AptosKeyPairFactoryType {
   }
 
   @override
-  void setGenerator(AptosKeyPairGenerator generator) => _generator = generator;
+  set generator(AptosKeyPairGenerator generator) => _generator = generator;
 
   AptosPublicKeyType _fromPrivateKey(AptosPrivateKeyType privateKey) {
     return ed25519.public(privateKey);
@@ -204,7 +175,7 @@ class AptosKeyPairFactory implements AptosKeyPairFactoryType {
 
   AptosPrivateKeyType _fromPrivateKeyHex(String privateKey) {
     final List<int> prKey = HexString(privateKey).toUint8Array();
-    final sk = ed25519.newKeyFromSeed(prKey as Uint8List);
+    final sk = ed25519.newKeyFromSeed(Uint8List.fromList(prKey));
     return sk;
   }
 }
@@ -218,7 +189,7 @@ class AptosSeedKeyPairStrategy
   final AptosReference reference;
   final Uint8List _seed;
   final int _index;
-  late final AptosKeyPair _keyPair;
+  late AptosKeyPair _keyPair;
 
   AptosSeedKeyPairStrategy._(this.reference, this._seed, this._index);
 
@@ -237,48 +208,19 @@ class AptosSeedKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
-    throw UnimplementedError();
-    // AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    // secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
-    // final Future<Ed25519HDKeyPair> signer =
-    //     Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-    // return (await (await signer).sign(message.codeUnits)).toBase58();
-  }
-
-  // // * Transaction
-  // @override
-  // Future<String> signCompiledMessage(CompiledMessage message) async {
-  //   AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-  //   secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
-  //   final Future<Ed25519HDKeyPair> signer =
-  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-  //   return (await (await signer).sign(message.toByteArray())).toBase58();
-  // }
-
-  // @override
-  // Future<SignedTx> signCompiledMessageForTransaction(
-  //     CompiledMessage message) async {
-  //   AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-  //   secretKey ??= (await (await _fromSeedAndIndex(_seed, _index)).extract());
-  //   final Future<Ed25519HDKeyPair> signer =
-  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-  //   final signedTransaction =
-  //       (await (await signer).sign(message.toByteArray()));
-  //   return SignedTx(
-  //     signatures: [signedTransaction],
-  //     compiledMessage: message,
-  //   );
-  // }
-  @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
+  Future<String> sign(String message) async {
+    AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= await _fromSeedAndIndex(_seed, _index);
+    final signature = ed25519.sign(secretKey, Uint8List.fromList(message.codeUnits));
+    return HexString.fromUint8Array(signature.sublist(0, 64)).hex();
   }
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
-    throw UnimplementedError();
+  Future<bool> verifySignature(String message, String signature) async {
+    AptosPublicKeyType publicKey = await _keyPair.extractPublicKey();
+    return ed25519.verify(publicKey, Uint8List.fromList(message.codeUnits),
+        HexString(signature).toUint8Array());
   }
 
   Future<AptosPrivateKeyType> _fromSeedAndIndex(
@@ -311,7 +253,7 @@ class AptosPrivateKeyPairStrategy
         AptosKeyPairVerifier {
   final AptosBlockchainId blockchainId;
   final String privateKey;
-  late final AptosKeyPair _keyPair;
+  late AptosKeyPair _keyPair;
 
   AptosPrivateKeyPairStrategy._(AptosReference reference, this.privateKey)
       : blockchainId = AptosBlockchainId(reference);
@@ -331,54 +273,24 @@ class AptosPrivateKeyPairStrategy
 
   // * Signature
   @override
-  Future<String> signMessage(String message) async {
-    throw UnimplementedError();
-    // AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-    // secretKey ??= _fromPrivateKeyBase58(privateKey);
-    // final Future<Ed25519HDKeyPair> signer =
-    //     Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-    // return (await (await signer).sign(message.codeUnits)).toBase58();
-  }
-
-  // // * Transaction
-  // @override
-  // Future<String> signCompiledMessage(CompiledMessage message) async {
-  //   AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-  //   secretKey ??= _fromPrivateKeyBase58(privateKey);
-  //   final Future<Ed25519HDKeyPair> signer =
-  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-  //   return (await (await signer).sign(message.toByteArray())).toBase58();
-  // }
-
-  // @override
-  // Future<SignedTx> signCompiledMessageForTransaction(
-  //     CompiledMessage message) async {
-  //   AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
-  //   secretKey ??= _fromPrivateKeyBase58(privateKey);
-  //   final Future<Ed25519HDKeyPair> signer =
-  //       Ed25519HDKeyPair.fromPrivateKeyBytes(privateKey: secretKey.bytes);
-  //   final signedTransaction =
-  //       (await (await signer).sign(message.toByteArray()));
-  //   return SignedTx(
-  //     signatures: [signedTransaction],
-  //     compiledMessage: message,
-  //   );
-  // }
-
-  @override
-  Future<String> signTransaction(String message) async {
-    throw UnimplementedError();
+  Future<String> sign(String message) async {
+    AptosPrivateKeyType? secretKey = await _keyPair.extractSecretKey();
+    secretKey ??= _fromPrivateKeyHex(privateKey);
+    final signature = ed25519.sign(secretKey, Uint8List.fromList(message.codeUnits));
+    return HexString.fromUint8Array(signature.sublist(0, 64)).hex();
   }
 
   // * Verification
   @override
-  Future<bool> verify(String message, String signature) async {
-    throw UnimplementedError();
+  Future<bool> verifySignature(String message, String signature) async {
+    AptosPublicKeyType publicKey = await _keyPair.extractPublicKey();
+    return ed25519.verify(publicKey, Uint8List.fromList(message.codeUnits),
+        HexString(signature).toUint8Array());
   }
 
   AptosPrivateKeyType _fromPrivateKeyHex(String privateKey) {
     final List<int> prKey = HexString(privateKey).toUint8Array();
-    final sk = ed25519.newKeyFromSeed(prKey as Uint8List);
+    final sk = ed25519.newKeyFromSeed(Uint8List.fromList(prKey));
     return sk;
   }
 }
