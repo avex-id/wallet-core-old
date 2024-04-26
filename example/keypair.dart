@@ -91,7 +91,7 @@ Future<void> main() async {
     final aliceSignatureVerificationStatus =
         await aliceAccount.verifySignature(toBeSignedMessage, aliceSignature);
     print(
-        "\nAlice Account ${aliceAccount.blockchainAccountId.address}\nSigned: $toBeSignedMessage\nSignature: $aliceSignature\nVerification Status: $aliceSignatureVerificationStatus\n");
+        "\nBlockchain: ${aliceAccount.blockchainAccountId.blockchainId.toString()}\nAlice Account ${aliceAccount.blockchainAccountId.address}\nSigned: $toBeSignedMessage\nSignature: $aliceSignature\nVerification Status: $aliceSignatureVerificationStatus\n");
 
     // final bobSignature = await bobAccount.sign(toBeSignedMessage);
     // final bobSignatureVerificationStatus =
