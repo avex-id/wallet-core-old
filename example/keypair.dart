@@ -18,8 +18,8 @@ Future<void> main() async {
 
   // Generate a mnemonic phrase
   final mnemonic = Platform.environment['MNEMONIC_PHRASE'] == null
-      ? Mnemonic.generate()
-      : Mnemonic.fromString(Platform.environment['MNEMONIC_PHRASE']!);
+      ? Mnemonic.generateMnemonic()
+      : Platform.environment['MNEMONIC_PHRASE']!;
   print("Mnemonic: $mnemonic\n");
 
   // // Get Eip155 Private Key
@@ -34,7 +34,7 @@ Future<void> main() async {
 
   // Generate secret shares
   final secretShares = ShamirSecretManager(minimum: 2, shares: 2)
-      .generate(secret: mnemonic.toString());
+      .generate(secret: mnemonic);
   print("Generated secret shares:");
   for (var i = 0; i < secretShares.length; i++) {
     print("Share ${i + 1}: ${secretShares[i]}\n");
@@ -57,7 +57,7 @@ Future<void> main() async {
 
     // Alice Keypair
     SeedKeyPairStrategy aliceSeedStrategy =
-        seedStrategyFactory.createFromSeedAndIndex(mnemonic.toSeed, 0);
+        seedStrategyFactory.createFromSeedAndIndex(Mnemonic.toSeed(mnemonic), 0);
     keyPairFactory.generator = aliceSeedStrategy;
     final aliceKeyPair = await keyPairFactory.generate();
     aliceKeyPair.signer = aliceSeedStrategy;
